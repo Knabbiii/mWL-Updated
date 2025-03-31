@@ -4,7 +4,7 @@ plugins {
 }
 
 group = 'me.truec0der'
-version = '2.0.1'
+version = '2.1.0'
 
 repositories {
     mavenCentral()
@@ -19,12 +19,12 @@ repositories {
 }
 
 dependencies {
-    compileOnly 'org.projectlombok:lombok:1.18.28'
-    annotationProcessor 'org.projectlombok:lombok:1.18.28'
+    compileOnly 'org.projectlombok:lombok:1.18.36'
+    annotationProcessor 'org.projectlombok:lombok:1.18.36'
 
     compileOnly "io.papermc.paper:paper-api:1.18.2-R0.1-SNAPSHOT"
 
-    compileOnly 'org.mongodb:mongodb-driver-sync:4.11.1'
+    compileOnly 'org.mongodb:mongodb-driver-sync:5.4.0'
 
     implementation "org.bstats:bstats-bukkit:3.0.2"
 }
