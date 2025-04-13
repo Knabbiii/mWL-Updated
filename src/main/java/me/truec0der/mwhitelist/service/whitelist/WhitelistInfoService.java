@@ -53,7 +53,6 @@ public class WhitelistInfoService extends Service {
                         .replaceText(text -> text.match("%player_nickname%").replacement(nickname))
                         .replaceText(text -> text.match("%player_uuid%").replacement(String.valueOf(uuid)));
 
-
                 playerList.set(playerList.get().append(formattedNickname));
 
                 int findPlayerIndex = findPlayers.indexOf(findPlayer);

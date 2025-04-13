@@ -4,6 +4,8 @@ import com.mongodb.ConnectionString;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.experimental.FieldDefaults;
+import me.truec0der.mwhitelist.config.ConfigRegister;
+import me.truec0der.mwhitelist.config.configs.MainConfig;
 import me.truec0der.mwhitelist.interfaces.repository.PlayerRepository;
 import me.truec0der.mwhitelist.model.enums.database.DatabaseType;
 import me.truec0der.mwhitelist.service.database.DatabaseConnectionService;
@@ -15,21 +17,27 @@ import java.io.File;
 public class RepositoryRegister {
     Plugin plugin;
     DatabaseConnectionService databaseConnectionService;
+    ConfigRegister configRegister;
     @Getter
     PlayerRepository playerRepository;
 
-    public RepositoryRegister(Plugin plugin, DatabaseConnectionService databaseConnectionService) {
+    public RepositoryRegister(Plugin plugin, DatabaseConnectionService databaseConnectionService, ConfigRegister configRegister) {
         this.plugin = plugin;
         this.databaseConnectionService = databaseConnectionService;
+        this.configRegister = configRegister;
     }
 
-    public void init(DatabaseType databaseType, String mongoUrl, String mongoPlayerCollection) {
+    public void init(DatabaseType databaseType) {
+        MainConfig mainConfig = configRegister.getMainConfig();
+
         databaseConnectionService.close();
 
         switch (databaseType) {
             case MONGO: {
+                String mongoUrl = mainConfig.getMongoUrl();
+                String mongoName = mainConfig.getMongoName();
                 ConnectionString connectionString = new ConnectionString(mongoUrl);
-                playerRepository = databaseConnectionService.initMongoPlayerService(connectionString, mongoPlayerCollection);
+                playerRepository = databaseConnectionService.initMongoPlayerService(connectionString, mongoName);
                 break;
             }
             default: {

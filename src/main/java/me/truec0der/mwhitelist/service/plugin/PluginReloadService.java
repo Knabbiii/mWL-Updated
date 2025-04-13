@@ -24,13 +24,7 @@ public class PluginReloadService extends Service {
         langConfig.reload();
 
         getConfigRegister().init();
-
-        getRepositoryRegister().init(
-                mainConfig.getDatabaseType(),
-                mainConfig.getMongoUrl(),
-                mainConfig.getMongoCollectionUser()
-        );
-
+        getRepositoryRegister().init(mainConfig.getDatabaseType());
         getServiceRegister().init();
     }
 

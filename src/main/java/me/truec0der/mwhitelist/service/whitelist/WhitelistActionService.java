@@ -43,12 +43,12 @@ public class WhitelistActionService extends Service {
 
         ModeType mode = mainConfig.getMode();
 
-        UUID playerOfflineUuid = UUIDUtil.getOfflineUuid(nickname);
-        UUID playerOnlineUuid = UUIDUtil.getOnlineUuid(nickname);
-
-        UUID playerUuid = UUIDUtil.getUuidByMode(nickname, mode);
-
         CompletableFuture.runAsync(() -> {
+            UUID playerOfflineUuid = UUIDUtil.getOfflineUuid(nickname);
+            UUID playerOnlineUuid = UUIDUtil.getOnlineUuid(nickname);
+
+            UUID playerUuid = UUIDUtil.getUuidByMode(playerOfflineUuid, playerOnlineUuid, mode);
+
             LangConfig.CommandAdd addCommand = langConfig.getCommand().getAdd();
 
             Optional<PlayerEntity> optionalFindPlayer = playerRepository.find(playerUuid, mode.isOnline());
@@ -76,12 +76,12 @@ public class WhitelistActionService extends Service {
 
         ModeType mode = mainConfig.getMode();
 
-        UUID playerOfflineUuid = UUIDUtil.getOfflineUuid(nickname);
-        UUID playerOnlineUuid = UUIDUtil.getOnlineUuid(nickname);
-
-        UUID playerUuid = UUIDUtil.getUuidByMode(nickname, mode);
-
         CompletableFuture.runAsync(() -> {
+            UUID playerOfflineUuid = UUIDUtil.getOfflineUuid(nickname);
+            UUID playerOnlineUuid = UUIDUtil.getOnlineUuid(nickname);
+
+            UUID playerUuid = UUIDUtil.getUuidByMode(playerOfflineUuid, playerOnlineUuid, mode);
+
             LangConfig.CommandAddTemp addTempCommand = langConfig.getCommand().getAddTemp();
 
             Optional<PlayerEntity> optionalFindPlayer = playerRepository.find(playerUuid, mode.isOnline());
@@ -132,9 +132,9 @@ public class WhitelistActionService extends Service {
 
         ModeType mode = mainConfig.getMode();
 
-        UUID playerUuid = UUIDUtil.getUuidByMode(nickname, mode);
-
         CompletableFuture.runAsync(() -> {
+            UUID playerUuid = UUIDUtil.getUuidByMode(nickname, mode);
+
             LangConfig.CommandRemove removeCommand = langConfig.getCommand().getRemove();
 
             Player player = Bukkit.getPlayer(nickname);

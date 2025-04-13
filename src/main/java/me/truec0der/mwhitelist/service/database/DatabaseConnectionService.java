@@ -1,6 +1,9 @@
 package me.truec0der.mwhitelist.service.database;
 
 import com.mongodb.ConnectionString;
+import lombok.AccessLevel;
+import lombok.experimental.FieldDefaults;
+import me.truec0der.mwhitelist.config.ConfigRegister;
 import me.truec0der.mwhitelist.impl.repository.json.JsonRepositoryImpl;
 import me.truec0der.mwhitelist.impl.repository.json.player.JsonPlayerRepositoryImpl;
 import me.truec0der.mwhitelist.impl.repository.mongo.MongoRepositoryImpl;
@@ -12,20 +15,26 @@ import org.bukkit.plugin.Plugin;
 
 import java.io.File;
 
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class DatabaseConnectionService {
-    private MongoRepository mongoRepository;
-    private JsonRepository jsonRepository;
+    final ConfigRegister configRegister;
+    MongoRepository mongoRepository;
+    JsonRepository jsonRepository;
+
+    public DatabaseConnectionService(ConfigRegister configRegister) {
+        this.configRegister = configRegister;
+    }
 
     public PlayerRepository initMongoPlayerService(ConnectionString connectionString, String databaseName) {
         mongoRepository = new MongoRepositoryImpl(connectionString, databaseName);
         mongoRepository.init();
-        return new MongoPlayerRepositoryImpl(mongoRepository);
+        return new MongoPlayerRepositoryImpl(configRegister, mongoRepository);
     }
 
     public PlayerRepository initJsonPlayerService(Plugin plugin, File filePath, String file) {
         jsonRepository = new JsonRepositoryImpl(plugin, filePath, file);
         jsonRepository.init();
-        return new JsonPlayerRepositoryImpl(jsonRepository);
+        return new JsonPlayerRepositoryImpl(configRegister, jsonRepository);
     }
 
     public void closeMongoService() {

@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+import org.bson.Document;
 import org.jetbrains.annotations.Nullable;
 
 import java.text.SimpleDateFormat;
@@ -42,6 +43,42 @@ public class PlayerEntity {
                 .info(new PlayerInfo(nicknameHistory, lastUpdate))
                 .time(time)
                 .build();
+    }
+
+    public static PlayerEntity fromDocument(Document document) {
+        Document uuidDocument = (Document) document.get("uuid");
+        Document infoDocument = (Document) document.get("info");
+
+        return PlayerEntity.builder()
+                .uuid(
+                        new PlayerUuid(
+                                UUID.fromString(uuidDocument.getString("offline")),
+                                UUID.fromString(uuidDocument.getString("online"))
+                        )
+                )
+                .info(
+                        new PlayerInfo(
+                                infoDocument.getList("nicknameHistory", String.class),
+                                infoDocument.getLong("lastUpdate")
+                        )
+                )
+                .time(document.getLong("time"))
+                .build();
+    }
+
+    public Document toDocument() {
+        Document uuidDocument = new Document()
+                .append("offline", uuid.getOffline().toString())
+                .append("online", uuid.getOnline().toString());
+
+        Document infoDocument = new Document()
+                .append("nicknameHistory", info.getNicknameHistory())
+                .append("lastUpdate", info.getLastUpdate());
+
+        return new Document()
+                .append("uuid", uuidDocument)
+                .append("info", infoDocument)
+                .append("time", time);
     }
 
     public boolean isTimeExists(long currentTime) {

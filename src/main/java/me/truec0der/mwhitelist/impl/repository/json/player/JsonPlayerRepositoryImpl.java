@@ -7,16 +7,21 @@ import com.google.gson.JsonObject;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import me.truec0der.mwhitelist.config.ConfigRegister;
 import me.truec0der.mwhitelist.interfaces.repository.PlayerRepository;
 import me.truec0der.mwhitelist.interfaces.repository.json.JsonRepository;
 import me.truec0der.mwhitelist.model.entity.database.PlayerEntity;
 
 import java.util.*;
 
-@RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-public class JsonPlayerRepositoryImpl implements PlayerRepository {
+public class JsonPlayerRepositoryImpl extends PlayerRepository {
     JsonRepository jsonRepository;
+
+    public JsonPlayerRepositoryImpl(ConfigRegister configRegister, JsonRepository jsonRepository) {
+        super(configRegister);
+        this.jsonRepository = jsonRepository;
+    }
 
     private List<JsonObject> findJsonObject() {
         JsonArray database = jsonRepository.getDatabase();

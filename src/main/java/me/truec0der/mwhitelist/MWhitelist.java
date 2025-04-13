@@ -49,14 +49,15 @@ public final class MWhitelist extends JavaPlugin {
     }
 
     private void initDatabaseConnection() {
-        databaseConnectionService = new DatabaseConnectionService();
+        databaseConnectionService = new DatabaseConnectionService(configRegister);
     }
 
     private void initRepository() {
-        DatabaseType databaseType = DatabaseType.valueOf("JSON");
+        MainConfig mainConfig = configRegister.getMainConfig();
+        DatabaseType databaseType = mainConfig.getDatabaseType();
 
-        repositoryRegister = new RepositoryRegister(this, databaseConnectionService);
-        repositoryRegister.init(databaseType, configRegister.getMainConfig().getMongoUrl(), configRegister.getMainConfig().getMongoCollectionUser());
+        repositoryRegister = new RepositoryRegister(this, databaseConnectionService, configRegister);
+        repositoryRegister.init(databaseType);
 
         getLogger().info("Database " + databaseType.name() + " loaded!");
     }
