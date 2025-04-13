@@ -90,3 +90,6 @@ nb-configuration.xml
 ## Docs
 ##############################
 site/
+
+run/
+!run/eula.txt
