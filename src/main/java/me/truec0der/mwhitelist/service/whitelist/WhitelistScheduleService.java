@@ -53,7 +53,7 @@ public class WhitelistScheduleService extends Service {
 
                     Optional<PlayerEntity> optionalFindPlayer = playerRepository.find(playerUuid, mainConfig.getMode().isOnline());
                     optionalFindPlayer.ifPresentOrElse(findPlayer -> {
-                        if (findPlayer.isTimeInfinity() && !findPlayer.isTimeExpired()) return;
+                        if (findPlayer.isTimeInfinity() || !findPlayer.isTimeExpired()) return;
                         Component timeExpired = langConfig.getWhitelistTimeExpired()
                                 .replaceText(text -> text.match("%player_time%").replacement(findPlayer.formatTime(mainConfig.getTimeFormat())));
                         threadExecutor.runInMainThread(() -> onlinePlayer.kick(timeExpired, PlayerKickEvent.Cause.WHITELIST));
