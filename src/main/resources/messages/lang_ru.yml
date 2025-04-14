@@ -48,6 +48,7 @@ command:
     info: |-
       %prefix%<white>Информация о вайтлисте
       <#1aeb71>»
+      <#1aeb71>» <white>База данных: <#1aeb71>%whitelist_database%
       <#1aeb71>» <white>Режим: <#1aeb71>%whitelist_mode%
       <#1aeb71>»
       <#1aeb71>» <white>Статус: <#1aeb71>%whitelist_status%
@@ -70,7 +71,7 @@ command:
     added: "%prefix%<white>Вы <#1aeb71>добавили <white>игрока <#1aeb71>%player_nickname% <white>в вайтлист на срок до <#1aeb71>%player_time%!"
   extend-temp:
     invalid-time: "%prefix%<white>Указанное Вами время некорректно!"
-    added: "%prefix%<white>Вы <#1aeb71>увеличили <white>время пребывания игрока <#1aeb71>%player_nickname% <white>в вайтлисте на срок до <#1aeb71>%player_time%!"
+    extended: "%prefix%<white>Вы <#1aeb71>увеличили <white>время пребывания игрока <#1aeb71>%player_nickname% <white>в вайтлисте на срок до <#1aeb71>%player_time%!"
   remove:
     not-in: "%prefix%<white>Игрок <#eb1a3d>%player_nickname% <white>не находится в вайтлисте!"
     removed: "%prefix%<white>Вы <#eb1a3d>удалили <white>игрока <#eb1a3d>%player_nickname% <white>из вайтлиста!"

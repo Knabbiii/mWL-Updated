@@ -48,6 +48,7 @@ command:
     info: |-
       %prefix%<white>Whitelist info
       <#1aeb71>»
+      <#1aeb71>» <white>Database: <#1aeb71>%whitelist_database%
       <#1aeb71>» <white>Mode: <#1aeb71>%whitelist_mode%
       <#1aeb71>»
       <#1aeb71>» <white>Status: <#1aeb71>%whitelist_status%

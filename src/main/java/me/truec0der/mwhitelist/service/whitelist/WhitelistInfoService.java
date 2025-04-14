@@ -137,6 +137,7 @@ public class WhitelistInfoService extends Service {
             List<PlayerEntity> findPlayers = playerRepository.find();
 
             Component info = infoCommand.getInfo()
+                    .replaceText(text -> text.match("%whitelist_database%").replacement(mainConfig.getDatabaseType().toString()))
                     .replaceText(text -> text.match("%whitelist_mode%").replacement(mainConfig.getMode().toString()))
                     .replaceText(text -> text.match("%whitelist_status%").replacement(status ? infoCommand.getEnabledStatus() : infoCommand.getDisabledStatus()))
                     .replaceText(text -> text.match("%whitelist_size%").replacement(String.valueOf(findPlayers.size())));
