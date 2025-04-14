@@ -108,6 +108,42 @@ public class WhitelistActionService extends Service {
         });
     }
 
+    public void setPlayerTemp(CommandSender sender, String nickname, String[] timeArgs) {
+        MainConfig mainConfig = getConfigRegister().getMainConfig();
+        LangConfig langConfig = getConfigRegister().getLangConfig();
+        PlayerRepository playerRepository = getRepositoryRegister().getPlayerRepository();
+        ModeType modeType = mainConfig.getMode();
+
+        CompletableFuture.runAsync(() -> {
+            UUID offlineUuid = UUIDUtil.getOfflineUuid(nickname);
+            UUID onlineUuid = UUIDUtil.getOnlineUuid(nickname);
+            UUID playerUuid = UUIDUtil.getUuidByMode(offlineUuid, onlineUuid, modeType);
+
+            LangConfig.CommandSetTemp setTemp = langConfig.getCommand().getSetTemp();
+
+            long newTime = parseTime(timeArgs, setTemp.getInvalidTime(), sender);
+            if (newTime <= 0) return;
+
+            long currentTime = System.currentTimeMillis();
+
+            Optional<PlayerEntity> optionalPlayer = playerRepository.find(playerUuid, modeType.isOnline());
+            long newExpirationTime = currentTime + newTime;
+
+            if (optionalPlayer.isPresent()) {
+                playerRepository.create(nickname, offlineUuid, onlineUuid);
+            }
+
+            playerRepository.setTime(playerUuid, modeType.isOnline(), newExpirationTime);
+
+            Component extendedMessage = setTemp.getSetted()
+                    .replaceText(text -> text.match("%player_nickname%").replacement(nickname))
+                    .replaceText(text -> text.match("%player_time%")
+                            .replacement(mainConfig.getTimeFormat().format(new Date(newExpirationTime))));
+
+            sender.sendMessage(extendedMessage);
+        });
+    }
+
     public void extendPlayerTemp(CommandSender sender, String nickname, String[] timeArgs) {
         MainConfig mainConfig = getConfigRegister().getMainConfig();
         LangConfig langConfig = getConfigRegister().getLangConfig();

@@ -11,16 +11,16 @@ import org.bukkit.command.CommandSender;
 
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-public class SubCommandExtend implements Command {
+public class SubCommandSetTemp implements Command {
     ServiceRegister serviceRegister;
 
     @Override
     public CommandEntity getEntity() {
         return CommandEntity.builder()
-                .name(() -> "extend")
+                .name(() -> "settemp")
                 .regex(() -> "^(\\S+)\\s+(.+)$")
                 .completeArgs(() -> new String[0])
-                .permission(() -> "mwl.command.extend")
+                .permission(() -> "mwl.command.settemp")
                 .handler(this::handle)
                 .build();
     }
@@ -30,7 +30,7 @@ public class SubCommandExtend implements Command {
         CommandSender commandSender = context.getSender();
         String nickname = context.getArgs()[0];
 
-        serviceRegister.getWhitelistActionService().extendPlayerTemp(
+        serviceRegister.getWhitelistActionService().setPlayerTemp(
                 commandSender,
                 nickname,
                 context.getArgs()

@@ -38,7 +38,8 @@ command:
       <#1aeb71>» /mwl toggle [enable|disable] - <white>Переключить статус вайтлиста.
       <#1aeb71>» /mwl add [nickname] - <white>Добавить игрока в вайтлист.
       <#1aeb71>» /mwl addtemp [nickname] [formatted_time|unix_time] - <white>Добавить игрока в вайтлист на время.
-      <#1aeb71>» /mwl extend [nickname] [formatted_time|unix_time] - <white>Увеличить время пребывания игрока в вайтлисте.
+      <#1aeb71>» /mwl settemp [nickname] [formatted_time|unix_time] - <white>Установить время пребывания игрока в вайтлисте.
+      <#1aeb71>» /mwl extendtemp [nickname] [formatted_time|unix_time] - <white>Увеличить время пребывания игрока в вайтлисте.
       <#1aeb71>» /mwl remove [nickname] - <white>Удалить игрока из вайтлиста.
       <#1aeb71>» /mwl list - <white>Просмотреть всех игроков в вайтлисте.
       <#1aeb71>» /mwl check [nickname] - <white>Посмотреть информацию игрока о вайтлисте, если он в нём есть.
@@ -70,6 +71,9 @@ command:
     invalid-time: "%prefix%<white>Указанное Вами время некорректно!"
     already-added: "%prefix%<white>Игрок <#eb1a3d>%player_nickname% <white>уже в вайтлисте!"
     added: "%prefix%<white>Вы <#1aeb71>добавили <white>игрока <#1aeb71>%player_nickname% <white>в вайтлист на срок до <#1aeb71>%player_time%!"
+  set-temp:
+    invalid-time: "%prefix%<white>Указанное Вами время некорректно!"
+    setted: "%prefix%<white>Вы <#1aeb71>установили <white>время пребывания игрока <#1aeb71>%player_nickname% <white>в вайтлисте на срок до <#1aeb71>%player_time%!"
   extend-temp:
     invalid-time: "%prefix%<white>Указанное Вами время некорректно!"
     extended: "%prefix%<white>Вы <#1aeb71>увеличили <white>время пребывания игрока <#1aeb71>%player_nickname% <white>в вайтлисте на срок до <#1aeb71>%player_time%!"

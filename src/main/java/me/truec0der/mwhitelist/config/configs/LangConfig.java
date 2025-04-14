@@ -101,6 +101,7 @@ public class LangConfig extends ConfigHolder {
         CommandToggle toggle;
         CommandAdd add;
         CommandAddTemp addTemp;
+        CommandSetTemp setTemp;
         CommandExtendTemp extendTemp;
         CommandRemove remove;
         CommandList list;
@@ -114,6 +115,7 @@ public class LangConfig extends ConfigHolder {
                     .toggle(CommandToggle.serialize(section.getConfigurationSection("toggle")))
                     .add(CommandAdd.serialize(section.getConfigurationSection("add")))
                     .addTemp(CommandAddTemp.serialize(section.getConfigurationSection("add-temp")))
+                    .setTemp(CommandSetTemp.serialize(section.getConfigurationSection("set-temp")))
                     .extendTemp(CommandExtendTemp.serialize(section.getConfigurationSection("extend-temp")))
                     .remove(CommandRemove.serialize(section.getConfigurationSection("remove")))
                     .list(CommandList.serialize(section.getConfigurationSection("list")))
@@ -198,6 +200,21 @@ public class LangConfig extends ConfigHolder {
                     .invalidTime(getComponent(section.getString("invalid-time")))
                     .alreadyAdded(getComponent(section.getString("already-added")))
                     .added(getComponent(section.getString("added")))
+                    .build();
+        }
+    }
+
+    @Getter
+    @Builder
+    @FieldDefaults(level = AccessLevel.PRIVATE)
+    public static class CommandSetTemp {
+        Component invalidTime;
+        Component setted;
+
+        public static CommandSetTemp serialize(ConfigurationSection section) {
+            return CommandSetTemp.builder()
+                    .invalidTime(getComponent(section.getString("invalid-time")))
+                    .setted(getComponent(section.getString("setted")))
                     .build();
         }
     }

@@ -35,7 +35,8 @@ public class CommandHandler implements CommandExecutor, TabCompleter {
         commandController.command(new SubCommandToggle(serviceRegister).getEntity());
         commandController.command(new SubCommandAdd(serviceRegister).getEntity());
         commandController.command(new SubCommandAddTemp(serviceRegister).getEntity());
-        commandController.command(new SubCommandExtend(serviceRegister).getEntity());
+        commandController.command(new SubCommandSetTemp(serviceRegister).getEntity());
+        commandController.command(new SubCommandExtendTemp(serviceRegister).getEntity());
         commandController.command(new SubCommandRemove(serviceRegister).getEntity());
         commandController.command(new SubCommandList(serviceRegister).getEntity());
         commandController.command(new SubCommandCheck(serviceRegister).getEntity());

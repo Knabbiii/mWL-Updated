@@ -38,7 +38,8 @@ command:
       <#1aeb71>» /mwl toggle [enable|disable] - <white>Change the whitelist status.
       <#1aeb71>» /mwl add [nickname] - <white>Add player to whitelist.
       <#1aeb71>» /mwl addtemp [nickname] [formatted_time|unix_time] - <white>Add player to whitelist for time.
-      <#1aeb71>» /mwl extend [nickname] [formatted_time|unix_time] - <white>Extend player whitelist time.
+      <#1aeb71>» /mwl extendtemp [nickname] [formatted_time|unix_time] - <white>Extend player whitelist time.
+      <#1aeb71>» /mwl settemp [nickname] [formatted_time|unix_time] - <white>Set player whitelist time.
       <#1aeb71>» /mwl remove [nickname] - <white>Remove player from whitelist.
       <#1aeb71>» /mwl list - <white>View all players in whitelist.
       <#1aeb71>» /mwl check [nickname] - <white>View whitelist information about player.
