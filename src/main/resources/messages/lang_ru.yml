@@ -38,6 +38,7 @@ command:
       <#1aeb71>» /mwl toggle [enable|disable] - <white>Переключить статус вайтлиста.
       <#1aeb71>» /mwl add [nickname] - <white>Добавить игрока в вайтлист.
       <#1aeb71>» /mwl addtemp [nickname] [formatted_time|unix_time] - <white>Добавить игрока в вайтлист на время.
+      <#1aeb71>» /mwl extend [nickname] [formatted_time|unix_time] - <white>Увеличить время пребывания игрока в вайтлисте.
       <#1aeb71>» /mwl remove [nickname] - <white>Удалить игрока из вайтлиста.
       <#1aeb71>» /mwl list - <white>Просмотреть всех игроков в вайтлисте.
       <#1aeb71>» /mwl check [nickname] - <white>Посмотреть информацию игрока о вайтлисте, если он в нём есть.
