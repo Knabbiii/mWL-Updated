@@ -2,6 +2,7 @@ prefix: "<#1aeb71>mWL » <reset>"
 need-correct-args: "%prefix%<#eb1a3d>Need more or correct args to use this command."
 not-in-whitelist: "%prefix%<white>You are not on the server's whitelist, contact the administration if this may be an error."
 whitelist-time-expired: "%prefix%<white>Your time on the whitelist expired at <#1aeb71>%player_time%."
+expired-notify: "%prefix%<white>Your time on the whitelist will expired at <#1aeb71>%player_time%"
 not-perms: "%prefix%<#eb1a3d>You don't have permissions to use this command."
 main:
   update:
@@ -67,6 +68,9 @@ command:
     invalid-time: "%prefix%<white>The time you entered is invalid!"
     already-added: "%prefix%<white>Player <#eb1a3d>%player_nickname% <white>already in whitelist!"
     added: "%prefix%<white>You have <#1aeb71>added <white>a <#1aeb71>%player_nickname% <white>player to the whitelist until <#1aeb71>%player_time%!"
+  extend-temp:
+    invalid-time: "%prefix%<white>The time you entered is invalid!"
+    extended: "%prefix%<white>You have <#1aeb71>extended <white>whitelist time for <#1aeb71>%player_nickname% <white>until <#1aeb71>%player_time%!"
   remove:
     not-in: "%prefix%<white>The player <#eb1a3d>%player_nickname% <white>is not in whitelist!"
     removed: "%prefix%<white>You have <#eb1a3d>removed <white>the player <#eb1a3d>%player_nickname% <white>from the whitelist!"

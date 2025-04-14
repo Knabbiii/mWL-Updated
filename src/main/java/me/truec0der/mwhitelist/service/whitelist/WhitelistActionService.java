@@ -18,6 +18,7 @@ import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerLoginEvent;
 
 import java.util.Arrays;
@@ -68,59 +69,82 @@ public class WhitelistActionService extends Service {
         });
     }
 
-    public void addPlayerTemp(CommandSender sender, String nickname, String[] time) {
+    public void addPlayerTemp(CommandSender sender, String nickname, String[] timeArgs) {
         MainConfig mainConfig = getConfigRegister().getMainConfig();
         LangConfig langConfig = getConfigRegister().getLangConfig();
-
         PlayerRepository playerRepository = getRepositoryRegister().getPlayerRepository();
-
-        ModeType mode = mainConfig.getMode();
+        ModeType modeType = mainConfig.getMode();
 
         CompletableFuture.runAsync(() -> {
-            UUID playerOfflineUuid = UUIDUtil.getOfflineUuid(nickname);
-            UUID playerOnlineUuid = UUIDUtil.getOnlineUuid(nickname);
+            UUID offlineUuid = UUIDUtil.getOfflineUuid(nickname);
+            UUID onlineUuid = UUIDUtil.getOnlineUuid(nickname);
+            UUID playerUuid = UUIDUtil.getUuidByMode(offlineUuid, onlineUuid, modeType);
 
-            UUID playerUuid = UUIDUtil.getUuidByMode(playerOfflineUuid, playerOnlineUuid, mode);
+            LangConfig.CommandAddTemp addTemp = langConfig.getCommand().getAddTemp();
 
-            LangConfig.CommandAddTemp addTempCommand = langConfig.getCommand().getAddTemp();
-
-            Optional<PlayerEntity> optionalFindPlayer = playerRepository.find(playerUuid, mode.isOnline());
-            optionalFindPlayer.ifPresentOrElse(findPlayer -> {
-                Component alreadyAdded = addTempCommand.getAlreadyAdded()
+            Optional<PlayerEntity> optionalPlayer = playerRepository.find(playerUuid, modeType.isOnline());
+            if (optionalPlayer.isPresent()) {
+                Component alreadyAddedMessage = addTemp.getAlreadyAdded()
                         .replaceText(text -> text.match("%player_nickname%").replacement(nickname));
+                sender.sendMessage(alreadyAddedMessage);
+                return;
+            }
 
-                sender.sendMessage(alreadyAdded);
-            }, () -> {
-                long addedTime = TimeUtil.parseUnit(time, 1);
+            long additionalTime = parseTime(timeArgs, addTemp.getInvalidTime(), sender);
+            if (additionalTime <= 0) return;
 
-                if (addedTime == 0) {
-                    try {
-                        addedTime = Long.parseLong(String.join("", Arrays.copyOfRange(time, 1, time.length)));
-                    } catch (NumberFormatException e) {
-                        sender.sendMessage(addTempCommand.getInvalidTime());
-                        return;
-                    }
-                }
+            long currentTime = System.currentTimeMillis();
+            long expirationTime = currentTime + additionalTime;
 
-                long currentTime = new Date().getTime();
-                long finalTime = currentTime + addedTime;
+            playerRepository.create(nickname, offlineUuid, onlineUuid);
+            playerRepository.setTime(playerUuid, modeType.isOnline(), expirationTime);
 
-                if (finalTime <= currentTime) {
-                    sender.sendMessage(addTempCommand.getInvalidTime());
-                    return;
-                }
+            Component addedMessage = addTemp.getAdded()
+                    .replaceText(text -> text.match("%player_nickname%").replacement(nickname))
+                    .replaceText(text -> text.match("%player_time%")
+                            .replacement(mainConfig.getTimeFormat().format(new Date(expirationTime))));
 
-                Date finalDate = new Date(finalTime);
+            sender.sendMessage(addedMessage);
+        });
+    }
 
-                playerRepository.create(nickname, playerOfflineUuid, playerOnlineUuid);
-                playerRepository.setTime(playerUuid, mode.isOnline(), finalTime);
+    public void extendPlayerTemp(CommandSender sender, String nickname, String[] timeArgs) {
+        MainConfig mainConfig = getConfigRegister().getMainConfig();
+        LangConfig langConfig = getConfigRegister().getLangConfig();
+        PlayerRepository playerRepository = getRepositoryRegister().getPlayerRepository();
+        ModeType modeType = mainConfig.getMode();
 
-                Component added = addTempCommand.getAdded()
-                        .replaceText(text -> text.match("%player_nickname%").replacement(nickname))
-                        .replaceText(text -> text.match("%player_time%").replacement(mainConfig.getTimeFormat().format(finalDate)));
+        CompletableFuture.runAsync(() -> {
+            UUID offlineUuid = UUIDUtil.getOfflineUuid(nickname);
+            UUID onlineUuid = UUIDUtil.getOnlineUuid(nickname);
+            UUID playerUuid = UUIDUtil.getUuidByMode(offlineUuid, onlineUuid, modeType);
 
-                sender.sendMessage(added);
-            });
+            LangConfig.CommandExtendTemp extendTemp = langConfig.getCommand().getExtendTemp();
+
+            long additionalTime = parseTime(timeArgs, extendTemp.getInvalidTime(), sender);
+            if (additionalTime <= 0) return;
+
+            long currentTime = System.currentTimeMillis();
+
+            Optional<PlayerEntity> optionalPlayer = playerRepository.find(playerUuid, modeType.isOnline());
+            long newExpirationTime;
+
+            if (optionalPlayer.isPresent()) {
+                long existingTime = optionalPlayer.get().getTime();
+                newExpirationTime = Math.max(existingTime, currentTime) + additionalTime;
+            } else {
+                newExpirationTime = currentTime + additionalTime;
+                playerRepository.create(nickname, offlineUuid, onlineUuid);
+            }
+
+            playerRepository.setTime(playerUuid, modeType.isOnline(), newExpirationTime);
+
+            Component extendedMessage = extendTemp.getExtended()
+                    .replaceText(text -> text.match("%player_nickname%").replacement(nickname))
+                    .replaceText(text -> text.match("%player_time%")
+                            .replacement(mainConfig.getTimeFormat().format(new Date(newExpirationTime))));
+
+            sender.sendMessage(extendedMessage);
         });
     }
 
@@ -215,5 +239,53 @@ public class WhitelistActionService extends Service {
         }, () -> {
             event.disallow(PlayerLoginEvent.Result.KICK_WHITELIST, langConfig.getNotInWhitelist());
         });
+    }
+
+    public void handleExpiredNotify(PlayerJoinEvent event) {
+        MainConfig mainConfig = getConfigRegister().getMainConfig();
+        LangConfig langConfig = getConfigRegister().getLangConfig();
+
+        PlayerRepository playerRepository = getRepositoryRegister().getPlayerRepository();
+
+        Player player = event.getPlayer();
+
+        CompletableFuture.runAsync(() -> {
+            UUID playerUuid = UUIDUtil.getUuidByMode(player.getName(), mainConfig.getMode());
+
+            Optional<PlayerEntity> optionalFindPlayer = playerRepository.find(playerUuid, mainConfig.getMode().isOnline());
+            optionalFindPlayer.ifPresent(findPlayer -> {
+                Long estimatedTime = findPlayer.getEstimatedTime();
+                Long timeToNotify = mainConfig.getExpiredNotifyTime();
+
+                boolean isTimeExists = findPlayer.isTimeExists();
+                boolean shouldSendNotify = mainConfig.getExpiredNotifyEnabled() && isTimeExists && estimatedTime <= timeToNotify;
+
+                if (!shouldSendNotify) return;
+
+                Component expiredNotify = langConfig.getExpiredNotify()
+                        .replaceText(text -> text.match("%player_time%").replacement(findPlayer.formatTime(mainConfig.getTimeFormat())));
+
+                player.sendMessage(expiredNotify);
+            });
+        });
+    }
+
+    private long parseTime(String[] timeArgs, Component invalidTimeMessage, CommandSender sender) {
+        long time = TimeUtil.parseUnit(timeArgs, 1);
+        if (time == 0) {
+            try {
+                time = Long.parseLong(String.join("", Arrays.copyOfRange(timeArgs, 1, timeArgs.length)));
+            } catch (NumberFormatException e) {
+                sender.sendMessage(invalidTimeMessage);
+                return 0;
+            }
+        }
+
+        if (time <= 0) {
+            sender.sendMessage(invalidTimeMessage);
+            return 0;
+        }
+
+        return time;
     }
 }

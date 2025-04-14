@@ -17,6 +17,9 @@ whitelist:
     enabled: false # Is players check enabled
     initial-delay: 0 # Timer initial delay in milliseconds
     delay: 60000 # Timer delay in milliseconds
+  expired-notify: # Notify when player estimated whitelist time lower than expired-notify.time
+    enabled: true # Should send notify
+    time: 86400000 # Estimated time, when notify sends
 database:
   type: JSON # Database type (JSON, MONGO)
   mongodb: # MongoDB settings

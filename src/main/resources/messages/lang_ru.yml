@@ -2,6 +2,7 @@ prefix: "<#1aeb71>mWL » <reset>"
 need-correct-args: "%prefix%<#eb1a3d>Нужно больше аргументов, или они должны быть корректными для использования команды."
 not-in-whitelist: "%prefix%<white>Вы не находитесь в белом списке сервера. Обратитесь к администрации, если это может быть ошибкой."
 whitelist-time-expired: "%prefix%<white>Ваше время пребывания в белом списке истекло в <#1aeb71>%player_time%."
+expired-notify: "%prefix%<white>Ваше время пребывания в белом списке истечёт в <#1aeb71>%player_time%"
 not-perms: "%prefix%<#eb1a3d>У вас нет прав для использования этой команды."
 main:
   update:
@@ -67,6 +68,9 @@ command:
     invalid-time: "%prefix%<white>Указанное Вами время некорректно!"
     already-added: "%prefix%<white>Игрок <#eb1a3d>%player_nickname% <white>уже в вайтлисте!"
     added: "%prefix%<white>Вы <#1aeb71>добавили <white>игрока <#1aeb71>%player_nickname% <white>в вайтлист на срок до <#1aeb71>%player_time%!"
+  extend-temp:
+    invalid-time: "%prefix%<white>Указанное Вами время некорректно!"
+    added: "%prefix%<white>Вы <#1aeb71>увеличили <white>время пребывания игрока <#1aeb71>%player_nickname% <white>в вайтлисте на срок до <#1aeb71>%player_time%!"
   remove:
     not-in: "%prefix%<white>Игрок <#eb1a3d>%player_nickname% <white>не находится в вайтлисте!"
     removed: "%prefix%<white>Вы <#eb1a3d>удалили <white>игрока <#eb1a3d>%player_nickname% <white>из вайтлиста!"

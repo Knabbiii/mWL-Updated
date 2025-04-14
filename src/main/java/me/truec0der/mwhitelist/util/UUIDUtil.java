@@ -13,6 +13,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 @UtilityClass
 public class UUIDUtil {
@@ -51,6 +52,26 @@ public class UUIDUtil {
             return null;
         }
     }
+
+    public CompletableFuture<UUID> getOnlineUuidAsync(String nickname) {
+        HttpClient httpClient = HttpClient.newHttpClient();
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create("https://api.mojang.com/users/profiles/minecraft/" + nickname))
+                .build();
+
+        return httpClient.sendAsync(request, HttpResponse.BodyHandlers.ofString())
+                .thenApply(response -> {
+                    if (response.statusCode() != 200) return null;
+                    Gson gson = new Gson();
+                    OnlinePlayerEntity entity = gson.fromJson(response.body(), OnlinePlayerEntity.class);
+                    return convertToUUID(entity.getId());
+                })
+                .exceptionally(ex -> {
+                    ex.printStackTrace();
+                    return null;
+                });
+    }
+
 
     public UUID getUuidByMode(String nickname, ModeType mode) {
         UUID offlineUuid = UUIDUtil.getOfflineUuid(nickname);

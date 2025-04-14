@@ -81,8 +81,12 @@ public class PlayerEntity {
                 .append("time", time);
     }
 
+    public boolean isTimeExists() {
+        return isTimeExists(new Date().getTime());
+    }
+
     public boolean isTimeExists(long currentTime) {
-        return time >= 0 && time < currentTime;
+        return time >= 0 && time > currentTime;
     }
 
     public Long getEstimatedTime() {

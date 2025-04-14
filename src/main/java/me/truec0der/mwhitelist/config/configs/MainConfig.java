@@ -23,6 +23,8 @@ public class MainConfig extends ConfigHolder {
     private Boolean bypassPermissionEnabled;
     private String bypassPermission;
     private Boolean playersCheckEnabled;
+    private Boolean expiredNotifyEnabled;
+    private Long expiredNotifyTime;
     private Long playersCheckInitialDelay;
     private Long playersCheckDelay;
     private DatabaseType databaseType;
@@ -57,6 +59,9 @@ public class MainConfig extends ConfigHolder {
         playersCheckEnabled = config.getBoolean("whitelist.player-check.enabled");
         playersCheckInitialDelay = config.getLong("whitelist.player-check.initial-delay");
         playersCheckDelay = config.getLong("whitelist.player-check.delay");
+
+        expiredNotifyEnabled = config.getBoolean("whitelist.expired-notify.enabled");
+        expiredNotifyTime = config.getLong("whitelist.expired-notify.time");
 
         databaseType = DatabaseType.valueOf(config.getString("database.type"));
 

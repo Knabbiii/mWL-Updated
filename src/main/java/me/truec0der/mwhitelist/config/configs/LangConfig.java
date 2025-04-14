@@ -19,6 +19,7 @@ public class LangConfig extends ConfigHolder {
     private Component needCorrectArgs;
     private Component notInWhitelist;
     private Component whitelistTimeExpired;
+    private Component expiredNotify;
     private Component notPerms;
 
     private Main main;
@@ -50,6 +51,7 @@ public class LangConfig extends ConfigHolder {
         needCorrectArgs = getComponent(config.getString("need-correct-args"));
         notInWhitelist = getComponent(config.getString("not-in-whitelist"));
         whitelistTimeExpired = getComponent(config.getString("whitelist-time-expired"));
+        expiredNotify = getComponent(config.getString("expired-notify"));
         notPerms = getComponent(config.getString("not-perms"));
 
         main = Main.serialize(config.getConfigurationSection("main"));
@@ -99,6 +101,7 @@ public class LangConfig extends ConfigHolder {
         CommandToggle toggle;
         CommandAdd add;
         CommandAddTemp addTemp;
+        CommandExtendTemp extendTemp;
         CommandRemove remove;
         CommandList list;
         CommandCheck check;
@@ -111,6 +114,7 @@ public class LangConfig extends ConfigHolder {
                     .toggle(CommandToggle.serialize(section.getConfigurationSection("toggle")))
                     .add(CommandAdd.serialize(section.getConfigurationSection("add")))
                     .addTemp(CommandAddTemp.serialize(section.getConfigurationSection("add-temp")))
+                    .extendTemp(CommandExtendTemp.serialize(section.getConfigurationSection("extend-temp")))
                     .remove(CommandRemove.serialize(section.getConfigurationSection("remove")))
                     .list(CommandList.serialize(section.getConfigurationSection("list")))
                     .check(CommandCheck.serialize(section.getConfigurationSection("check")))
@@ -194,6 +198,21 @@ public class LangConfig extends ConfigHolder {
                     .invalidTime(getComponent(section.getString("invalid-time")))
                     .alreadyAdded(getComponent(section.getString("already-added")))
                     .added(getComponent(section.getString("added")))
+                    .build();
+        }
+    }
+
+    @Getter
+    @Builder
+    @FieldDefaults(level = AccessLevel.PRIVATE)
+    public static class CommandExtendTemp {
+        Component invalidTime;
+        Component extended;
+
+        public static CommandExtendTemp serialize(ConfigurationSection section) {
+            return CommandExtendTemp.builder()
+                    .invalidTime(getComponent(section.getString("invalid-time")))
+                    .extended(getComponent(section.getString("extended")))
                     .build();
         }
     }
