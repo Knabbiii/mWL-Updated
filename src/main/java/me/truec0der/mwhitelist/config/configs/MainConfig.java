@@ -1,78 +1,130 @@
 package me.truec0der.mwhitelist.config.configs;
 
+import lombok.AccessLevel;
 import lombok.Getter;
-import me.truec0der.mwhitelist.config.ConfigHolder;
+import lombok.experimental.FieldDefaults;
+import me.truec0der.mwhitelist.config.base.ConfigHolder;
+import me.truec0der.mwhitelist.config.base.ConfigSettings;
+import me.truec0der.mwhitelist.config.base.annotation.SerializableEntry;
+import me.truec0der.mwhitelist.config.base.serializer.custom.ComponentSerializer;
 import me.truec0der.mwhitelist.model.enums.database.DatabaseType;
 import me.truec0der.mwhitelist.model.enums.database.ModeType;
-import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.plugin.Plugin;
+import net.kyori.adventure.text.Component;
 
-import java.io.File;
 import java.text.SimpleDateFormat;
 
+@SuppressWarnings({"FieldMayBeFinal", "unused"})
 @Getter
-public class MainConfig extends ConfigHolder {
-    private String locale;
-    private SimpleDateFormat timeFormat;
-    private Boolean updateCheck;
-    private Boolean updateAuto;
-    private Boolean status;
-    private ModeType mode;
-    private Boolean removeOnExpired;
-    private Boolean kickOnRemove;
-    private Boolean bypassPermissionEnabled;
-    private String bypassPermission;
-    private Boolean playersCheckEnabled;
-    private Boolean expiredNotifyEnabled;
-    private Long expiredNotifyTime;
-    private Long playersCheckInitialDelay;
-    private Long playersCheckDelay;
-    private DatabaseType databaseType;
-    private String mongoUrl;
-    private String mongoName;
-    private String mongoCollectionUser;
+@FieldDefaults(level = AccessLevel.PRIVATE)
+@SerializableEntry
+public class MainConfig extends ConfigHolder<MainConfig> {
+    String locale;
+    String timeFormat;
+    Main main = new Main();
+    Whitelist whitelist = new Whitelist();
+    Database database = new Database();
 
-    public MainConfig(Plugin plugin, File filePath, String file) {
-        super(plugin, filePath, file);
+    public MainConfig(ConfigSettings configSettings) {
+        super(configSettings);
         loadAndSave();
         init();
     }
 
     @Override
-    public void init() {
-        YamlConfiguration config = this.getConfig();
-
-        locale = config.getString("locale");
-        timeFormat = new SimpleDateFormat(config.getString("time-format"));
-
-        updateCheck = config.getBoolean("main.update.check");
-        updateAuto = config.getBoolean("main.update.auto");
-
-        status = config.getBoolean("whitelist.status");
-        mode = ModeType.valueOf(config.getString("whitelist.mode"));
-        removeOnExpired = config.getBoolean("whitelist.remove-on-expired");
-        kickOnRemove = config.getBoolean("whitelist.kick-on-remove");
-
-        bypassPermissionEnabled = config.getBoolean("whitelist.bypass.permission.enabled");
-        bypassPermission = config.getString("whitelist.bypass.permission.permission");
-
-        playersCheckEnabled = config.getBoolean("whitelist.player-check.enabled");
-        playersCheckInitialDelay = config.getLong("whitelist.player-check.initial-delay");
-        playersCheckDelay = config.getLong("whitelist.player-check.delay");
-
-        expiredNotifyEnabled = config.getBoolean("whitelist.expired-notify.enabled");
-        expiredNotifyTime = config.getLong("whitelist.expired-notify.time");
-
-        databaseType = DatabaseType.valueOf(config.getString("database.type"));
-
-        mongoUrl = config.getString("database.mongodb.url");
-        mongoName = config.getString("database.mongodb.name");
-        mongoCollectionUser = config.getString("database.mongodb.collections.users");
+    protected void registerSerializers() {
+        getSerializerRegistry()
+                .register(Component.class, new ComponentSerializer());
     }
 
-    public void setStatus(boolean status) {
-        getConfig().set("whitelist.status", status);
-        save();
-        reload();
+    public SimpleDateFormat getTimeFormat() {
+        return new SimpleDateFormat(timeFormat);
+    }
+
+    public void setStatus(boolean isEnabled) {
+        setValueAndSave("whitelist.status", isEnabled);
+    }
+
+    @Getter
+    @FieldDefaults(level = AccessLevel.PRIVATE)
+    @SerializableEntry
+    public static class Main {
+        Update update = new Update();
+
+        @Getter
+        @FieldDefaults(level = AccessLevel.PRIVATE)
+        @SerializableEntry
+        public static class Update {
+            boolean check;
+            boolean auto;
+        }
+    }
+
+    @Getter
+    @FieldDefaults(level = AccessLevel.PRIVATE)
+    @SerializableEntry
+    public static class Whitelist {
+        boolean status;
+        ModeType mode;
+        boolean removeOnExpired;
+        boolean kickOnRemove;
+        Bypass bypass = new Bypass();
+        PlayerCheck playerCheck = new PlayerCheck();
+        ExpiredNotify expiredNotify = new ExpiredNotify();
+
+        @Getter
+        @FieldDefaults(level = AccessLevel.PRIVATE)
+        @SerializableEntry
+        public static class Bypass {
+            Permission permission = new Permission();
+
+            @Getter
+            @FieldDefaults(level = AccessLevel.PRIVATE)
+            @SerializableEntry
+            public static class Permission {
+                boolean enabled;
+                String permission;
+            }
+        }
+
+        @Getter
+        @FieldDefaults(level = AccessLevel.PRIVATE)
+        @SerializableEntry
+        public static class PlayerCheck {
+            boolean enabled;
+            int initialDelay;
+            int delay;
+        }
+
+        @Getter
+        @FieldDefaults(level = AccessLevel.PRIVATE)
+        @SerializableEntry
+        public static class ExpiredNotify {
+            boolean enabled;
+            long time;
+        }
+    }
+
+    @Getter
+    @FieldDefaults(level = AccessLevel.PRIVATE)
+    @SerializableEntry
+    public static class Database {
+        DatabaseType type;
+        MongoDB mongodb = new MongoDB();
+
+        @Getter
+        @FieldDefaults(level = AccessLevel.PRIVATE)
+        @SerializableEntry
+        public static class MongoDB {
+            String url;
+            String name;
+            Collections collections = new Collections();
+
+            @Getter
+            @FieldDefaults(level = AccessLevel.PRIVATE)
+            @SerializableEntry
+            public static class Collections {
+                String users;
+            }
+        }
     }
 }
