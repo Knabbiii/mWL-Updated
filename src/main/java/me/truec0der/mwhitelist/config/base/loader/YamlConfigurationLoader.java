@@ -19,7 +19,9 @@ public class YamlConfigurationLoader implements ConfigurationLoader<YamlConfigur
     public YamlConfiguration load(File directory, String fileName) {
         File configFile = new File(directory, fileName);
 
-        ensureResourceExists(configFile, fileName);
+        if (!configFile.exists()) {
+            plugin.saveResource(fileName, false);
+        }
 
         YamlConfiguration config = YamlConfiguration.loadConfiguration(configFile);
         applyDefaults(config, fileName, configFile);
@@ -30,14 +32,22 @@ public class YamlConfigurationLoader implements ConfigurationLoader<YamlConfigur
     @Override
     public YamlConfiguration load(File directory, String fileName, String defaultFileName) {
         File configFile = new File(directory, fileName);
-        boolean hasDefault = plugin.getResource(defaultFileName) != null;
+        InputStream resourceStream = plugin.getResource(defaultFileName);
 
-        String resourceToSave = hasDefault ? defaultFileName : fileName;
+        String resourceToUse = (resourceStream != null) ? fileName : defaultFileName;
+        File resourceFile = new File(directory, resourceToUse);
 
-        ensureResourceExists(configFile, resourceToSave);
+        if (!configFile.exists()) {
+            configFile = (resourceStream != null) ? configFile : new File(directory, defaultFileName);
+        }
 
         YamlConfiguration config = YamlConfiguration.loadConfiguration(configFile);
-        applyDefaults(config, resourceToSave, configFile);
+
+        if (!resourceFile.exists()) {
+            plugin.saveResource(resourceToUse, false);
+        }
+
+        applyDefaults(config, fileName, configFile);
 
         return config;
     }
@@ -56,22 +66,22 @@ public class YamlConfigurationLoader implements ConfigurationLoader<YamlConfigur
         return new YamlConfiguration();
     }
 
-    private void ensureResourceExists(File configFile, String resourceName) {
-        if (!configFile.exists()) {
-            plugin.saveResource(resourceName, false);
-        }
-    }
-
     private void applyDefaults(YamlConfiguration config, String resourceName, File configFile) {
-        try (InputStream defaultStream = plugin.getResource(resourceName)) {
-            if (defaultStream == null) return;
-            try (InputStreamReader reader = new InputStreamReader(defaultStream)) {
-                YamlConfiguration defaults = YamlConfiguration.loadConfiguration(reader);
-                defaults.getKeys(false).stream()
-                        .filter(key -> !config.contains(key))
-                        .forEach(key -> config.set(key, defaults.get(key)));
-                save(config, configFile);
+        InputStream inputStream = plugin.getResource(resourceName);
+        if (inputStream == null) return;
+
+        try (InputStreamReader reader = new InputStreamReader(inputStream)) {
+
+            YamlConfiguration defaults = YamlConfiguration.loadConfiguration(reader);
+
+            for (String key : defaults.getKeys(false)) {
+                if (!config.contains(key)) {
+                    config.set(key, defaults.get(key));
+                }
             }
+
+            save(config, configFile);
+
         } catch (IOException e) {
             e.printStackTrace();
         }
