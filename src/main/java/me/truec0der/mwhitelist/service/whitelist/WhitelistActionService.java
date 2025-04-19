@@ -129,7 +129,7 @@ public class WhitelistActionService extends Service {
             Optional<PlayerEntity> optionalPlayer = playerRepository.find(playerUuid, modeType.isOnline());
             long newExpirationTime = currentTime + newTime;
 
-            if (optionalPlayer.isPresent()) {
+            if (optionalPlayer.isEmpty()) {
                 playerRepository.create(nickname, offlineUuid, onlineUuid);
             }
 
