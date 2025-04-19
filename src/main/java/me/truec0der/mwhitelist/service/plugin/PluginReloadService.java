@@ -24,7 +24,7 @@ public class PluginReloadService extends Service {
         langConfig.reload();
 
         getConfigRegister().init();
-        getRepositoryRegister().init(mainConfig.getDatabaseType());
+        getRepositoryRegister().init(mainConfig.getDatabase().getType());
         getServiceRegister().init();
     }
 

@@ -70,6 +70,6 @@ public class MongoPlayerRepositoryImpl extends PlayerRepository {
 
     private MongoCollection<Document> getPlayerCollection() {
         MainConfig mainConfig = getConfigRegister().getMainConfig();
-        return mongoRepository.getCollection(mainConfig.getMongoCollectionUser());
+        return mongoRepository.getCollection(mainConfig.getDatabase().getMongodb().getCollections().getUsers());
     }
 }

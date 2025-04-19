@@ -40,18 +40,18 @@ public class WhitelistScheduleService extends Service {
 
         PlayerRepository playerRepository = getRepositoryRegister().getPlayerRepository();
 
-        if (!mainConfig.getStatus() || !mainConfig.getPlayersCheckEnabled()) return;
+        if (!mainConfig.getWhitelist().isStatus() || !mainConfig.getWhitelist().getPlayerCheck().isEnabled()) return;
 
         executorService = Executors.newSingleThreadScheduledExecutor();
         executorService.scheduleWithFixedDelay(() -> {
             try {
                 Bukkit.getOnlinePlayers().forEach(onlinePlayer -> {
-                    if (mainConfig.getBypassPermissionEnabled() && onlinePlayer.hasPermission(mainConfig.getBypassPermission()))
+                    if (mainConfig.getWhitelist().getBypass().getPermission().isEnabled() && onlinePlayer.hasPermission(mainConfig.getWhitelist().getBypass().getPermission().getPermission()))
                         return;
 
-                    UUID playerUuid = UUIDUtil.getUuidByMode(onlinePlayer.getName(), mainConfig.getMode());
+                    UUID playerUuid = UUIDUtil.getUuidByMode(onlinePlayer.getName(), mainConfig.getWhitelist().getMode());
 
-                    Optional<PlayerEntity> optionalFindPlayer = playerRepository.find(playerUuid, mainConfig.getMode().isOnline());
+                    Optional<PlayerEntity> optionalFindPlayer = playerRepository.find(playerUuid, mainConfig.getWhitelist().getMode().isOnline());
                     optionalFindPlayer.ifPresentOrElse(findPlayer -> {
                         if (findPlayer.isTimeInfinity() || !findPlayer.isTimeExpired()) return;
                         Component timeExpired = langConfig.getWhitelistTimeExpired()
@@ -64,7 +64,7 @@ public class WhitelistScheduleService extends Service {
             } catch (Throwable e) {
                 e.printStackTrace();
             }
-        }, mainConfig.getPlayersCheckInitialDelay(), mainConfig.getPlayersCheckDelay(), TimeUnit.MILLISECONDS);
+        }, mainConfig.getWhitelist().getPlayerCheck().getInitialDelay(), mainConfig.getWhitelist().getPlayerCheck().getDelay(), TimeUnit.MILLISECONDS);
     }
 
     public void destroyExecutor() {

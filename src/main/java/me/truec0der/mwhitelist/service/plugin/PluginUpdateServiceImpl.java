@@ -6,6 +6,7 @@ import lombok.experimental.FieldDefaults;
 import me.truec0der.mwhitelist.config.configs.LangConfig;
 import me.truec0der.mwhitelist.model.entity.plugin.PluginVersionEntity;
 import me.truec0der.mwhitelist.util.MessageSerializer;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Bukkit;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -95,8 +96,10 @@ public class PluginUpdateServiceImpl {
     }
 
     public void handleNotify(PluginVersionEntity entity, String currentVersion) {
-        String notify = LangConfig.getString(langConfig.getMain().getUpdate().getNotify());
-        String version = LangConfig.getString(langConfig.getMain().getUpdate().getVersionInfo());
+        MiniMessage miniMessage = MiniMessage.miniMessage();
+
+        String notify = miniMessage.serialize(langConfig.getMain().getUpdate().getNotify());
+        String version = miniMessage.serialize(langConfig.getMain().getUpdate().getVersionInfo());
 
         List<String> notifyComponents = new ArrayList<>(Arrays.asList(notify.split("\n")));
         List<String> versionInfo = entity.getInfo().stream()

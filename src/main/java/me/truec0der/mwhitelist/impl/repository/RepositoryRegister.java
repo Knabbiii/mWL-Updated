@@ -34,8 +34,8 @@ public class RepositoryRegister {
 
         switch (databaseType) {
             case MONGO: {
-                String mongoUrl = mainConfig.getMongoUrl();
-                String mongoName = mainConfig.getMongoName();
+                String mongoUrl = mainConfig.getDatabase().getMongodb().getUrl();
+                String mongoName = mainConfig.getDatabase().getMongodb().getName();
                 ConnectionString connectionString = new ConnectionString(mongoUrl);
                 playerRepository = databaseConnectionService.initMongoPlayerService(connectionString, mongoName);
                 break;

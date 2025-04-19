@@ -54,7 +54,7 @@ public final class MWhitelist extends JavaPlugin {
 
     private void initRepository() {
         MainConfig mainConfig = configRegister.getMainConfig();
-        DatabaseType databaseType = mainConfig.getDatabaseType();
+        DatabaseType databaseType = mainConfig.getDatabase().getType();
 
         repositoryRegister = new RepositoryRegister(this, databaseConnectionService, configRegister);
         repositoryRegister.init(databaseType);
@@ -95,7 +95,7 @@ public final class MWhitelist extends JavaPlugin {
         String destinationName = destinationPathSplit[destinationPathSplit.length - 1];
 
         PluginUpdateServiceImpl pluginUpdateService = new PluginUpdateServiceImpl("https://truec0der.github.io/plugin/mWL.json", destinationPath, destinationName, configRegister.getLangConfig());
-        if (mainConfig.getUpdateCheck())
-            pluginUpdateService.handleCheck(getDescription().getVersion(), mainConfig.getUpdateAuto());
+        if (mainConfig.getMain().getUpdate().isCheck())
+            pluginUpdateService.handleCheck(getDescription().getVersion(), mainConfig.getMain().getUpdate().isAuto());
     }
 }
