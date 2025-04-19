@@ -257,7 +257,8 @@ public class WhitelistActionService extends Service {
 
         Player player = event.getPlayer();
 
-        if (mainConfig.getWhitelist().getBypass().getPermission().isEnabled() && player.hasPermission(mainConfig.getWhitelist().getBypass().getPermission().getPermission())) return;
+        if (mainConfig.getWhitelist().getBypass().getPermission().isEnabled() && player.hasPermission(mainConfig.getWhitelist().getBypass().getPermission().getPermission()))
+            return;
 
         UUID playerUuid = UUIDUtil.getUuidByMode(player.getName(), mainConfig.getWhitelist().getMode());
 

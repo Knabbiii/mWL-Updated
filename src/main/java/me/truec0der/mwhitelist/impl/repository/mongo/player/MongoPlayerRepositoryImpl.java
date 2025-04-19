@@ -2,7 +2,6 @@ package me.truec0der.mwhitelist.impl.repository.mongo.player;
 
 import com.mongodb.client.MongoCollection;
 import lombok.AccessLevel;
-import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import me.truec0der.mwhitelist.config.ConfigRegister;
 import me.truec0der.mwhitelist.config.configs.MainConfig;

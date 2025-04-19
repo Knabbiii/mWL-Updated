@@ -72,7 +72,6 @@ public class UUIDUtil {
                 });
     }
 
-
     public UUID getUuidByMode(String nickname, ModeType mode) {
         UUID offlineUuid = UUIDUtil.getOfflineUuid(nickname);
         UUID onlineUuid = UUIDUtil.getOnlineUuid(nickname);

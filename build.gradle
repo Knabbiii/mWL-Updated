@@ -1,5 +1,5 @@
-import xyz.jpenilla.runtask.task.AbstractRun
 import groovy.json.JsonSlurper
+import xyz.jpenilla.runtask.task.AbstractRun
 
 plugins {
     id 'com.github.johnrengelman.shadow' version '8.1.1'
