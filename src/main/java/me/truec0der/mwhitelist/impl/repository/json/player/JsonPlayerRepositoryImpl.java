@@ -95,6 +95,21 @@ public class JsonPlayerRepositoryImpl extends PlayerRepository {
     }
 
     @Override
+    public void create(UUID uuid) {
+        JsonArray database = jsonRepository.getDatabase();
+        Gson gson = jsonRepository.getGson();
+
+        PlayerEntity playerEntity = PlayerEntity.builder()
+                .uuid(new PlayerEntity.PlayerUuid(uuid, uuid))
+                .info(new PlayerEntity.PlayerInfo(List.of(), new Date().getTime()))
+                .time(-1L)
+                .build();
+
+        database.add(gson.toJsonTree(playerEntity));
+        jsonRepository.save();
+    }
+
+    @Override
     public void remove(UUID uuid, boolean isOnline) {
         JsonArray database = jsonRepository.getDatabase();
 

@@ -46,6 +46,17 @@ public class MongoPlayerRepositoryImpl extends PlayerRepository {
     }
 
     @Override
+    public void create(UUID uuid) {
+        PlayerEntity playerEntity = PlayerEntity.builder()
+                .uuid(new PlayerEntity.PlayerUuid(uuid, uuid))
+                .info(new PlayerEntity.PlayerInfo(List.of(), new Date().getTime()))
+                .time(-1L)
+                .build();
+
+        getPlayerCollection().insertOne(playerEntity.toDocument());
+    }
+
+    @Override
     public void remove(UUID uuid, boolean isOnline) {
         Document query = new Document("uuid." + (isOnline ? "online" : "offline"), uuid.toString());
         getPlayerCollection().deleteOne(query);

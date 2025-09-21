@@ -25,6 +25,8 @@ public abstract class PlayerRepository {
 
     abstract public void create(String nickname, UUID offlineUuid, UUID onlineUuid);
 
+    abstract public void create(UUID uuid);
+
     abstract public void remove(UUID uuid, boolean isOnline);
 
     abstract public void setTime(UUID uuid, boolean isOnline, long time);
