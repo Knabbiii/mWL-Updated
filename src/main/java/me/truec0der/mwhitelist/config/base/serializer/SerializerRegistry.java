@@ -7,6 +7,7 @@ import me.truec0der.mwhitelist.config.base.serializer.standard.*;
 import org.jetbrains.annotations.Unmodifiable;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.List;
@@ -39,13 +40,14 @@ public class SerializerRegistry {
         serializers.put(type, serializer);
     }
 
+    @SuppressWarnings("unchecked")
     public <T> TypeSerializer<T> get(Class<T> type) {
         return (TypeSerializer<T>) serializers.get(type);
     }
 
     @Unmodifiable
     public Map<Class<?>, TypeSerializer<?>> getAll() {
-        return serializers;
+        return Map.copyOf(serializers);
     }
 
     public boolean has(Class<?> type) {
@@ -53,11 +55,12 @@ public class SerializerRegistry {
     }
 
     public void deserialize(Object target, EntryNode node) {
-        if (!target.getClass().isAnnotationPresent(SerializableEntry.class)) {
+        Class<?> targetClass = target.getClass();
+        if (!targetClass.isAnnotationPresent(SerializableEntry.class)) {
             return;
         }
 
-        for (Field field : target.getClass().getDeclaredFields()) {
+        for (Field field : targetClass.getDeclaredFields()) {
             if (Modifier.isTransient(field.getModifiers())) continue;
 
             String path = toPath(field.getName());
@@ -75,33 +78,88 @@ public class SerializerRegistry {
                 } else {
                     deserializeNestedField(target, field, fieldType, path, node);
                 }
+            } catch (EntryDeserializationException e) {
+                throw e;
             } catch (Exception e) {
-                throw new EntryDeserializationException("Failed to deserialize field: " + field.getName(), e);
+                throw new EntryDeserializationException(
+                        "Failed to deserialize field '%s' (type: %s) in class '%s' at path '%s'. Node value: %s"
+                                        .formatted(
+                                                field.getName(),
+                                                fieldType.getSimpleName(),
+                                                targetClass.getName(),
+                                                path,
+                                                safeNodeValue(node, path)
+                                        ),
+                        e
+                );
             }
         }
     }
 
-    private void deserializeNestedField(Object target, Field field, Class<?> fieldType, String path, EntryNode node) throws Exception {
+    private void deserializeNestedField(Object target, Field field,
+                                        Class<?> fieldType, String path, EntryNode node) {
         EntryNode nestedNode = node.getNode(path);
-        if (nestedNode != null) {
+        if (nestedNode == null) {
+            throw new EntryDeserializationException(
+                    "Missing nested node for field '%s' (type: %s) in class '%s' at path '%s'"
+                            .formatted(
+                                    field.getName(),
+                                    fieldType.getSimpleName(),
+                                    target.getClass().getName(),
+                                    path
+                            )
+            );
+        }
+        try {
             Object instance = createNewInstance(fieldType);
             deserialize(instance, nestedNode);
             field.set(target, instance);
-        } else {
-            throw new EntryDeserializationException("Missing nested node for field: " + field.getName() + " at path: " + path);
+        } catch (EntryDeserializationException e) {
+            throw new EntryDeserializationException(
+                    "Error while deserializing nested object for field '%s' (type: %s) in class '%s'"
+                            .formatted(
+                                    field.getName(),
+                                    fieldType.getSimpleName(),
+                                    target.getClass().getName()
+                            ),
+                    e
+            );
+        } catch (Exception e) {
+            throw new EntryDeserializationException(
+                    "Could not create or populate instance of '%s' for field '%s' in class '%s'"
+                            .formatted(
+                                    fieldType.getName(),
+                                    field.getName(),
+                                    target.getClass().getName()
+                            ),
+                    e
+            );
         }
     }
 
-    private Object createNewInstance(Class<?> fieldType) throws Exception {
+    private Object createNewInstance(Class<?> fieldType) {
         try {
             return fieldType.getDeclaredConstructor().newInstance();
-        } catch (NoSuchMethodException | IllegalAccessException | InstantiationException e) {
-            throw new EntryDeserializationException("Failed to create instance of class: " + fieldType.getName(), e);
+        } catch (NoSuchMethodException | IllegalAccessException |
+                 InstantiationException | InvocationTargetException e) {
+            throw new EntryDeserializationException(
+                    "Failed to create an instance of '%s'. Make sure it has a public no-arg constructor."
+                            .formatted(fieldType.getName()),
+                    e
+            );
         }
     }
 
     private String toPath(String fieldName) {
         return fieldName.replaceAll("([a-z])([A-Z]+)", "$1-$2").toLowerCase();
+    }
+
+    private static String safeNodeValue(EntryNode node, String path) {
+        try {
+            return String.valueOf(node.getNode(path));
+        } catch (Exception ignored) {
+            return "<unavailable>";
+        }
     }
 }
 

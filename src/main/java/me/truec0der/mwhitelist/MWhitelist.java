@@ -39,8 +39,8 @@ public final class MWhitelist extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        databaseConnectionService.close();
-        serviceRegister.getWhitelistScheduleService().destroyExecutor();
+        if (databaseConnectionService != null) databaseConnectionService.close();
+        if (serviceRegister != null) serviceRegister.getWhitelistScheduleService().destroyExecutor();
         getLogger().info("Plugin disabled!");
     }
 
