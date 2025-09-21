@@ -42,15 +42,28 @@ public class WhitelistInfoService extends Service {
 
             findPlayers.forEach(findPlayer -> {
                 List<String> nicknameHistory = findPlayer.getInfo().getNicknameHistory();
-                int nicknameHistorySize = nicknameHistory.size();
-                if (nicknameHistory.isEmpty()) return;
+                String displayName;
 
-                String nickname = nicknameHistory.get(nicknameHistorySize - 1);
+                if (nicknameHistory.isEmpty()) {
+                    UUID uuid = UUIDUtil.getUuidByMode(
+                            findPlayer.getUuid().getOffline(),
+                            findPlayer.getUuid().getOnline(),
+                            mainConfig.getWhitelist().getMode()
+                    );
+                    String uuidStr = uuid.toString();
+                    displayName = uuidStr.substring(0, 4) + "..." + uuidStr.substring(uuidStr.length() - 4);
+                } else {
+                    displayName = nicknameHistory.get(nicknameHistory.size() - 1);
+                }
 
-                UUID uuid = UUIDUtil.getUuidByMode(findPlayer.getUuid().getOffline(), findPlayer.getUuid().getOnline(), mainConfig.getWhitelist().getMode());
+                UUID uuid = UUIDUtil.getUuidByMode(
+                        findPlayer.getUuid().getOffline(),
+                        findPlayer.getUuid().getOnline(),
+                        mainConfig.getWhitelist().getMode()
+                );
 
                 Component formattedNickname = listCommand.getPlayer()
-                        .replaceText(text -> text.match("%player_nickname%").replacement(nickname))
+                        .replaceText(text -> text.match("%player_nickname%").replacement(displayName))
                         .replaceText(text -> text.match("%player_uuid%").replacement(String.valueOf(uuid)));
 
                 playerList.set(playerList.get().append(formattedNickname));
@@ -154,6 +167,7 @@ public class WhitelistInfoService extends Service {
     public List<String> getWhitelistNicknames() {
         return getRepositoryRegister().getPlayerRepository().find().stream().map(player -> {
             List<String> nicknameHistory = player.getInfo().getNicknameHistory();
+            if (nicknameHistory.isEmpty()) return "";
             return nicknameHistory.get(nicknameHistory.size() - 1);
         }).collect(Collectors.toList());
     }

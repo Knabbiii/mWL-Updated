@@ -36,7 +36,7 @@ public class WhitelistActionService extends Service {
         this.threadExecutor = threadExecutor;
     }
 
-    public void addPlayer(CommandSender sender, String nickname) {
+    public void addPlayer(CommandSender sender, String nicknameOrUuid) {
         MainConfig mainConfig = getConfigRegister().getMainConfig();
         LangConfig langConfig = getConfigRegister().getLangConfig();
 
@@ -44,9 +44,12 @@ public class WhitelistActionService extends Service {
 
         ModeType mode = mainConfig.getWhitelist().getMode();
 
+        boolean isUuid = UUIDUtil.isUuid(nicknameOrUuid);
+        UUID uuid = isUuid ? UUID.fromString(nicknameOrUuid) : null;
+
         CompletableFuture.runAsync(() -> {
-            UUID playerOfflineUuid = UUIDUtil.getOfflineUuid(nickname);
-            UUID playerOnlineUuid = UUIDUtil.getOnlineUuid(nickname);
+            UUID playerOfflineUuid = isUuid ? uuid : UUIDUtil.getOfflineUuid(nicknameOrUuid);
+            UUID playerOnlineUuid = isUuid ? uuid : UUIDUtil.getOnlineUuid(nicknameOrUuid);
 
             UUID playerUuid = UUIDUtil.getUuidByMode(playerOfflineUuid, playerOnlineUuid, mode);
 
@@ -55,29 +58,37 @@ public class WhitelistActionService extends Service {
             Optional<PlayerEntity> optionalFindPlayer = playerRepository.find(playerUuid, mode.isOnline());
             optionalFindPlayer.ifPresentOrElse(findPlayer -> {
                 Component alreadyAdded = addCommand.getAlreadyAdded()
-                        .replaceText(text -> text.match("%player_nickname%").replacement(nickname));
+                        .replaceText(text -> text.match("%player_nickname%").replacement(nicknameOrUuid));
 
                 sender.sendMessage(alreadyAdded);
             }, () -> {
-                playerRepository.create(nickname, playerOfflineUuid, playerOnlineUuid);
+                if (isUuid) {
+                    playerRepository.create(uuid);
+                } else {
+                    playerRepository.create(nicknameOrUuid, playerOfflineUuid, playerOnlineUuid);
+                }
 
                 Component added = addCommand.getAdded()
-                        .replaceText(text -> text.match("%player_nickname%").replacement(nickname));
+                        .replaceText(text -> text.match("%player_nickname%").replacement(nicknameOrUuid));
 
                 sender.sendMessage(added);
             });
         });
     }
 
-    public void addPlayerTemp(CommandSender sender, String nickname, String[] timeArgs) {
+    public void addPlayerTemp(CommandSender sender, String nicknameOrUuid, String[] timeArgs) {
         MainConfig mainConfig = getConfigRegister().getMainConfig();
         LangConfig langConfig = getConfigRegister().getLangConfig();
         PlayerRepository playerRepository = getRepositoryRegister().getPlayerRepository();
         ModeType modeType = mainConfig.getWhitelist().getMode();
 
+        boolean isUuid = UUIDUtil.isUuid(nicknameOrUuid);
+        UUID uuid = isUuid ? UUID.fromString(nicknameOrUuid) : null;
+
         CompletableFuture.runAsync(() -> {
-            UUID offlineUuid = UUIDUtil.getOfflineUuid(nickname);
-            UUID onlineUuid = UUIDUtil.getOnlineUuid(nickname);
+            UUID offlineUuid = isUuid ? uuid : UUIDUtil.getOfflineUuid(nicknameOrUuid);
+            UUID onlineUuid = isUuid ? uuid : UUIDUtil.getOnlineUuid(nicknameOrUuid);
+
             UUID playerUuid = UUIDUtil.getUuidByMode(offlineUuid, onlineUuid, modeType);
 
             LangConfig.Command.AddTemp addTemp = langConfig.getCommand().getAddTemp();
@@ -85,7 +96,7 @@ public class WhitelistActionService extends Service {
             Optional<PlayerEntity> optionalPlayer = playerRepository.find(playerUuid, modeType.isOnline());
             if (optionalPlayer.isPresent()) {
                 Component alreadyAddedMessage = addTemp.getAlreadyAdded()
-                        .replaceText(text -> text.match("%player_nickname%").replacement(nickname));
+                        .replaceText(text -> text.match("%player_nickname%").replacement(nicknameOrUuid));
                 sender.sendMessage(alreadyAddedMessage);
                 return;
             }
@@ -96,11 +107,16 @@ public class WhitelistActionService extends Service {
             long currentTime = System.currentTimeMillis();
             long expirationTime = currentTime + additionalTime;
 
-            playerRepository.create(nickname, offlineUuid, onlineUuid);
+            if (isUuid) {
+                playerRepository.create(uuid);
+            } else {
+                playerRepository.create(nicknameOrUuid, offlineUuid, onlineUuid);
+            }
+
             playerRepository.setTime(playerUuid, modeType.isOnline(), expirationTime);
 
             Component addedMessage = addTemp.getAdded()
-                    .replaceText(text -> text.match("%player_nickname%").replacement(nickname))
+                    .replaceText(text -> text.match("%player_nickname%").replacement(nicknameOrUuid))
                     .replaceText(text -> text.match("%player_time%")
                             .replacement(mainConfig.getTimeFormat().format(new Date(expirationTime))));
 
@@ -108,15 +124,19 @@ public class WhitelistActionService extends Service {
         });
     }
 
-    public void setPlayerTemp(CommandSender sender, String nickname, String[] timeArgs) {
+    public void setPlayerTemp(CommandSender sender, String nicknameOrUuid, String[] timeArgs) {
         MainConfig mainConfig = getConfigRegister().getMainConfig();
         LangConfig langConfig = getConfigRegister().getLangConfig();
         PlayerRepository playerRepository = getRepositoryRegister().getPlayerRepository();
         ModeType modeType = mainConfig.getWhitelist().getMode();
 
+        boolean isUuid = UUIDUtil.isUuid(nicknameOrUuid);
+        UUID uuid = isUuid ? UUID.fromString(nicknameOrUuid) : null;
+
         CompletableFuture.runAsync(() -> {
-            UUID offlineUuid = UUIDUtil.getOfflineUuid(nickname);
-            UUID onlineUuid = UUIDUtil.getOnlineUuid(nickname);
+            UUID offlineUuid = isUuid ? uuid : UUIDUtil.getOfflineUuid(nicknameOrUuid);
+            UUID onlineUuid = isUuid ? uuid : UUIDUtil.getOnlineUuid(nicknameOrUuid);
+
             UUID playerUuid = UUIDUtil.getUuidByMode(offlineUuid, onlineUuid, modeType);
 
             LangConfig.Command.SetTemp setTemp = langConfig.getCommand().getSetTemp();
@@ -130,13 +150,17 @@ public class WhitelistActionService extends Service {
             long newExpirationTime = currentTime + newTime;
 
             if (optionalPlayer.isEmpty()) {
-                playerRepository.create(nickname, offlineUuid, onlineUuid);
+                if (isUuid) {
+                    playerRepository.create(uuid);
+                } else {
+                    playerRepository.create(nicknameOrUuid, offlineUuid, onlineUuid);
+                }
             }
 
             playerRepository.setTime(playerUuid, modeType.isOnline(), newExpirationTime);
 
             Component extendedMessage = setTemp.getSetted()
-                    .replaceText(text -> text.match("%player_nickname%").replacement(nickname))
+                    .replaceText(text -> text.match("%player_nickname%").replacement(nicknameOrUuid))
                     .replaceText(text -> text.match("%player_time%")
                             .replacement(mainConfig.getTimeFormat().format(new Date(newExpirationTime))));
 
@@ -144,15 +168,19 @@ public class WhitelistActionService extends Service {
         });
     }
 
-    public void extendPlayerTemp(CommandSender sender, String nickname, String[] timeArgs) {
+    public void extendPlayerTemp(CommandSender sender, String nicknameOrUuid, String[] timeArgs) {
         MainConfig mainConfig = getConfigRegister().getMainConfig();
         LangConfig langConfig = getConfigRegister().getLangConfig();
         PlayerRepository playerRepository = getRepositoryRegister().getPlayerRepository();
         ModeType modeType = mainConfig.getWhitelist().getMode();
 
+        boolean isUuid = UUIDUtil.isUuid(nicknameOrUuid);
+        UUID uuid = isUuid ? UUID.fromString(nicknameOrUuid) : null;
+
         CompletableFuture.runAsync(() -> {
-            UUID offlineUuid = UUIDUtil.getOfflineUuid(nickname);
-            UUID onlineUuid = UUIDUtil.getOnlineUuid(nickname);
+            UUID offlineUuid = isUuid ? uuid : UUIDUtil.getOfflineUuid(nicknameOrUuid);
+            UUID onlineUuid = isUuid ? uuid : UUIDUtil.getOnlineUuid(nicknameOrUuid);
+
             UUID playerUuid = UUIDUtil.getUuidByMode(offlineUuid, onlineUuid, modeType);
 
             LangConfig.Command.ExtendTemp extendTemp = langConfig.getCommand().getExtendTemp();
@@ -170,13 +198,18 @@ public class WhitelistActionService extends Service {
                 newExpirationTime = Math.max(existingTime, currentTime) + additionalTime;
             } else {
                 newExpirationTime = currentTime + additionalTime;
-                playerRepository.create(nickname, offlineUuid, onlineUuid);
+
+                if (isUuid) {
+                    playerRepository.create(uuid);
+                } else {
+                    playerRepository.create(nicknameOrUuid, offlineUuid, onlineUuid);
+                }
             }
 
             playerRepository.setTime(playerUuid, modeType.isOnline(), newExpirationTime);
 
             Component extendedMessage = extendTemp.getExtended()
-                    .replaceText(text -> text.match("%player_nickname%").replacement(nickname))
+                    .replaceText(text -> text.match("%player_nickname%").replacement(nicknameOrUuid))
                     .replaceText(text -> text.match("%player_time%")
                             .replacement(mainConfig.getTimeFormat().format(new Date(newExpirationTime))));
 
@@ -184,7 +217,7 @@ public class WhitelistActionService extends Service {
         });
     }
 
-    public void removePlayer(CommandSender sender, String nickname) {
+    public void removePlayer(CommandSender sender, String nicknameOrUuid) {
         MainConfig mainConfig = getConfigRegister().getMainConfig();
         LangConfig langConfig = getConfigRegister().getLangConfig();
 
@@ -192,12 +225,21 @@ public class WhitelistActionService extends Service {
 
         ModeType mode = mainConfig.getWhitelist().getMode();
 
+        boolean isUuid = UUIDUtil.isUuid(nicknameOrUuid);
+        UUID uuid = isUuid ? UUID.fromString(nicknameOrUuid) : null;
+
         CompletableFuture.runAsync(() -> {
-            UUID playerUuid = UUIDUtil.getUuidByMode(nickname, mode);
+            UUID playerUuid;
+
+            if (isUuid) {
+                playerUuid = uuid;
+            } else {
+                playerUuid = UUIDUtil.getUuidByMode(nicknameOrUuid, mode);
+            }
 
             LangConfig.Command.Remove removeCommand = langConfig.getCommand().getRemove();
 
-            Player player = Bukkit.getPlayer(nickname);
+            Player player = Bukkit.getPlayer(nicknameOrUuid);
 
             Optional<PlayerEntity> optionalFindPlayer = playerRepository.find(playerUuid, mode.isOnline());
             optionalFindPlayer.ifPresentOrElse(findPlayer -> {
@@ -210,12 +252,12 @@ public class WhitelistActionService extends Service {
                 }
 
                 Component removed = removeCommand.getRemoved()
-                        .replaceText(text -> text.match("%player_nickname%").replacement(nickname));
+                        .replaceText(text -> text.match("%player_nickname%").replacement(nicknameOrUuid));
 
                 sender.sendMessage(removed);
             }, () -> {
                 Component notIn = removeCommand.getNotIn()
-                        .replaceText(text -> text.match("%player_nickname%").replacement(nickname));
+                        .replaceText(text -> text.match("%player_nickname%").replacement(nicknameOrUuid));
 
                 sender.sendMessage(notIn);
             });

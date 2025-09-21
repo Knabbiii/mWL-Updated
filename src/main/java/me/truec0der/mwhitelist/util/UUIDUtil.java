@@ -82,4 +82,14 @@ public class UUIDUtil {
     public UUID getUuidByMode(UUID offlineUuid, UUID onlineUuid, ModeType mode) {
         return mode.isOnline() ? onlineUuid : offlineUuid;
     }
+
+    public static boolean isUuid(String text) {
+        if (text == null) return false;
+        try {
+            UUID.fromString(text);
+            return true;
+        } catch (IllegalArgumentException e) {
+            return false;
+        }
+    }
 }
