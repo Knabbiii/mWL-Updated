@@ -83,7 +83,7 @@ public final class MWhitelist extends JavaPlugin {
     }
 
     private void initMetrics() {
-        int pluginId = 20857;
+        int pluginId = 31885;
         Metrics metrics = new Metrics(this, pluginId);
     }
 

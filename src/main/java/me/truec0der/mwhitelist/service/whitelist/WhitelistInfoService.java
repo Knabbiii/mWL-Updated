@@ -7,6 +7,7 @@ import me.truec0der.mwhitelist.config.configs.LangConfig;
 import me.truec0der.mwhitelist.config.configs.MainConfig;
 import me.truec0der.mwhitelist.impl.repository.RepositoryRegister;
 import me.truec0der.mwhitelist.interfaces.repository.PlayerRepository;
+import me.truec0der.mwhitelist.misc.ThreadExecutor;
 import me.truec0der.mwhitelist.model.entity.database.PlayerEntity;
 import me.truec0der.mwhitelist.service.Service;
 import me.truec0der.mwhitelist.service.ServiceRegister;
@@ -24,8 +25,11 @@ import java.util.stream.Collectors;
 
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class WhitelistInfoService extends Service {
-    public WhitelistInfoService(ServiceRegister serviceRegister, RepositoryRegister repositoryRegister, ConfigRegister configRegister) {
+    ThreadExecutor threadExecutor;
+
+    public WhitelistInfoService(ServiceRegister serviceRegister, RepositoryRegister repositoryRegister, ConfigRegister configRegister, ThreadExecutor threadExecutor) {
         super(serviceRegister, repositoryRegister, configRegister);
+        this.threadExecutor = threadExecutor;
     }
 
     public void sendPlayerList(CommandSender sender) {
@@ -78,7 +82,8 @@ public class WhitelistInfoService extends Service {
                     .replaceText(text -> text.match("%list_size%").replacement(String.valueOf(findPlayers.size())))
                     .replaceText(text -> text.match("%player_list%").replacement(playerList.get()));
 
-            sender.sendMessage(playerList.get().equals(Component.empty()) ? listCommand.getEmpty() : info);
+            Component result = playerList.get().equals(Component.empty()) ? listCommand.getEmpty() : info;
+            threadExecutor.runInMainThread(() -> sender.sendMessage(result));
         });
     }
 
@@ -127,12 +132,12 @@ public class WhitelistInfoService extends Service {
                         .replaceText(text -> text.match("%player_time%").replacement(findPlayer.isTimeInfinity() ? checkCommand.getTime().getInfinity().getInfo() : formattedPlayerDate))
                         .replaceText(text -> text.match("%player_time_about%").replacement(playerTimeAbout));
 
-                sender.sendMessage(info);
+                threadExecutor.runInMainThread(() -> sender.sendMessage(info));
             }, () -> {
                 Component notIn = checkCommand.getNotIn()
                         .replaceText(text -> text.match("%player_nickname%").replacement(nickname));
 
-                sender.sendMessage(notIn);
+                threadExecutor.runInMainThread(() -> sender.sendMessage(notIn));
             });
         });
     }
@@ -155,7 +160,7 @@ public class WhitelistInfoService extends Service {
                     .replaceText(text -> text.match("%whitelist_status%").replacement(status ? infoCommand.getStatus().getEnabled() : infoCommand.getStatus().getDisabled()))
                     .replaceText(text -> text.match("%whitelist_size%").replacement(String.valueOf(findPlayers.size())));
 
-            sender.sendMessage(info);
+            threadExecutor.runInMainThread(() -> sender.sendMessage(info));
         });
     }
 

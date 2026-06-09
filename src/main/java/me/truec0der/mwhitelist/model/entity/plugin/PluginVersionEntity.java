@@ -1,11 +1,11 @@
 package me.truec0der.mwhitelist.model.entity.plugin;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,17 +18,15 @@ public class PluginVersionEntity {
     String url;
     List<String> info;
 
-    public static PluginVersionEntity toEntity(JSONObject jsonObject) {
-        JSONArray infoArray = (JSONArray) jsonObject.get("info");
+    public static PluginVersionEntity toEntity(JsonObject jsonObject) {
+        JsonArray infoArray = jsonObject.getAsJsonArray("info");
         List<String> infoList = new ArrayList<>();
 
-        infoArray.forEach(value -> {
-            infoList.add(value.toString());
-        });
+        infoArray.forEach(value -> infoList.add(value.getAsString()));
 
         return PluginVersionEntity.builder()
-                .version(jsonObject.get("version").toString())
-                .url(jsonObject.get("url").toString())
+                .version(jsonObject.get("version").getAsString())
+                .url(jsonObject.get("url").getAsString())
                 .info(infoList)
                 .build();
     }

@@ -35,7 +35,7 @@ public class ServiceRegister {
     public void init() {
         pluginReloadService = new PluginReloadService(this, repositoryRegister, configRegister);
         whitelistActionService = new WhitelistActionService(this, repositoryRegister, configRegister, threadExecutor);
-        whitelistInfoService = new WhitelistInfoService(this, repositoryRegister, configRegister);
+        whitelistInfoService = new WhitelistInfoService(this, repositoryRegister, configRegister, threadExecutor);
         whitelistScheduleService = new WhitelistScheduleService(this, repositoryRegister, configRegister, threadExecutor);
         whitelistScheduleService.initExecutor();
     }

@@ -60,7 +60,7 @@ public class WhitelistActionService extends Service {
                 Component alreadyAdded = addCommand.getAlreadyAdded()
                         .replaceText(text -> text.match("%player_nickname%").replacement(nicknameOrUuid));
 
-                sender.sendMessage(alreadyAdded);
+                threadExecutor.runInMainThread(() -> sender.sendMessage(alreadyAdded));
             }, () -> {
                 if (isUuid) {
                     playerRepository.create(uuid);
@@ -71,7 +71,7 @@ public class WhitelistActionService extends Service {
                 Component added = addCommand.getAdded()
                         .replaceText(text -> text.match("%player_nickname%").replacement(nicknameOrUuid));
 
-                sender.sendMessage(added);
+                threadExecutor.runInMainThread(() -> sender.sendMessage(added));
             });
         });
     }
@@ -97,7 +97,7 @@ public class WhitelistActionService extends Service {
             if (optionalPlayer.isPresent()) {
                 Component alreadyAddedMessage = addTemp.getAlreadyAdded()
                         .replaceText(text -> text.match("%player_nickname%").replacement(nicknameOrUuid));
-                sender.sendMessage(alreadyAddedMessage);
+                threadExecutor.runInMainThread(() -> sender.sendMessage(alreadyAddedMessage));
                 return;
             }
 
@@ -120,7 +120,7 @@ public class WhitelistActionService extends Service {
                     .replaceText(text -> text.match("%player_time%")
                             .replacement(mainConfig.getTimeFormat().format(new Date(expirationTime))));
 
-            sender.sendMessage(addedMessage);
+            threadExecutor.runInMainThread(() -> sender.sendMessage(addedMessage));
         });
     }
 
@@ -164,7 +164,7 @@ public class WhitelistActionService extends Service {
                     .replaceText(text -> text.match("%player_time%")
                             .replacement(mainConfig.getTimeFormat().format(new Date(newExpirationTime))));
 
-            sender.sendMessage(extendedMessage);
+            threadExecutor.runInMainThread(() -> sender.sendMessage(extendedMessage));
         });
     }
 
@@ -213,7 +213,7 @@ public class WhitelistActionService extends Service {
                     .replaceText(text -> text.match("%player_time%")
                             .replacement(mainConfig.getTimeFormat().format(new Date(newExpirationTime))));
 
-            sender.sendMessage(extendedMessage);
+            threadExecutor.runInMainThread(() -> sender.sendMessage(extendedMessage));
         });
     }
 
@@ -254,12 +254,12 @@ public class WhitelistActionService extends Service {
                 Component removed = removeCommand.getRemoved()
                         .replaceText(text -> text.match("%player_nickname%").replacement(nicknameOrUuid));
 
-                sender.sendMessage(removed);
+                threadExecutor.runInMainThread(() -> sender.sendMessage(removed));
             }, () -> {
                 Component notIn = removeCommand.getNotIn()
                         .replaceText(text -> text.match("%player_nickname%").replacement(nicknameOrUuid));
 
-                sender.sendMessage(notIn);
+                threadExecutor.runInMainThread(() -> sender.sendMessage(notIn));
             });
         });
     }
@@ -344,7 +344,7 @@ public class WhitelistActionService extends Service {
                 Component expiredNotify = langConfig.getExpiredNotify()
                         .replaceText(text -> text.match("%player_time%").replacement(findPlayer.formatTime(mainConfig.getTimeFormat())));
 
-                player.sendMessage(expiredNotify);
+                threadExecutor.runInMainThread(() -> player.sendMessage(expiredNotify));
             });
         });
     }
@@ -355,13 +355,13 @@ public class WhitelistActionService extends Service {
             try {
                 time = Long.parseLong(String.join("", Arrays.copyOfRange(timeArgs, 1, timeArgs.length)));
             } catch (NumberFormatException e) {
-                sender.sendMessage(invalidTimeMessage);
+                threadExecutor.runInMainThread(() -> sender.sendMessage(invalidTimeMessage));
                 return 0;
             }
         }
 
         if (time <= 0) {
-            sender.sendMessage(invalidTimeMessage);
+            threadExecutor.runInMainThread(() -> sender.sendMessage(invalidTimeMessage));
             return 0;
         }
 

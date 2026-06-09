@@ -1,31 +1,16 @@
 {
   "java": {
     "version": 17,
-    "allow_enhanced_hotswap": true
+    "allow_enhanced_hotswap": false
   },
   "plugin": {
     "name": "mWL",
     "version": "2.2.0",
-    "api_version": "1.18"
+    "api_version": "1.20"
   },
   "paper": {
-    "java_version": 21,
-    "server_version": "1.21.4",
-    "paper_version": "1.18.2-R0.1-SNAPSHOT"
-  },
-  "modrinth": {
-    "project_id": "mwl",
-    "version_number": "2.0.1",
-    "version_type": "release",
-    "upload_file": "jar",
-    "game_versions": [
-      "1.18.2",
-      "1.21.4"
-    ],
-    "loaders": [
-      "paper",
-      "purpur"
-    ],
-    "dependencies": {}
+    "java_version": 25,
+    "server_version": "26.1.2",
+    "paper_version": "1.20.4-R0.1-SNAPSHOT"
   }
 }

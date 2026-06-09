@@ -93,3 +93,4 @@ site/
 
 run/
 !run/eula.txt
+start-dev-server.sh

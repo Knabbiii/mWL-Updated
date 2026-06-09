@@ -7,7 +7,6 @@ import me.truec0der.mwhitelist.command.subcommand.*;
 import me.truec0der.mwhitelist.config.ConfigRegister;
 import me.truec0der.mwhitelist.config.configs.LangConfig;
 import me.truec0der.mwhitelist.service.ServiceRegister;
-import org.apache.commons.lang.StringUtils;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -63,7 +62,7 @@ public class CommandHandler implements CommandExecutor, TabCompleter {
             return true;
         }
 
-        String joinedArgs = StringUtils.join(slicedArgs, " ");
+        String joinedArgs = String.join(" ", slicedArgs);
 
         Optional<CommandEntity> matchingCommand = foundCommands.stream()
                 .filter(entity -> Pattern.matches(entity.getRegex().get(), joinedArgs))

@@ -1,10 +1,8 @@
 import groovy.json.JsonSlurper
-import xyz.jpenilla.runtask.task.AbstractRun
 
 plugins {
-    id 'com.github.johnrengelman.shadow' version '8.1.1'
+    id 'com.gradleup.shadow' version '9.4.2'
     id 'xyz.jpenilla.run-paper' version '2.3.1'
-    id "com.modrinth.minotaur" version '2.+'
     id 'java'
 }
 
@@ -30,14 +28,19 @@ String paperPaperVersion = readPluginProperty("paper.paper_version", "1.21.4-R0.
 String paperServerVersion = readPluginProperty("paper.server_version", "1.21.4")
 def targetJavaVersion = readPluginProperty("java.version", 21) as Integer
 
+configurations {
+    bundle
+}
+
 dependencies {
-    compileOnly 'org.projectlombok:lombok:1.18.36'
-    annotationProcessor 'org.projectlombok:lombok:1.18.36'
+    compileOnly 'org.projectlombok:lombok:1.18.46'
+    annotationProcessor 'org.projectlombok:lombok:1.18.46'
 
     compileOnly "io.papermc.paper:paper-api:${paperPaperVersion}"
 
     compileOnly 'org.mongodb:mongodb-driver-sync:5.4.0'
 
+    bundle "org.bstats:bstats-bukkit:3.0.2"
     implementation "org.bstats:bstats-bukkit:3.0.2"
 }
 
@@ -58,19 +61,6 @@ tasks.withType(JavaCompile).configureEach {
     }
 }
 
-boolean hasEnhancedHotswap = readPluginProperty("java.allow_enhanced_hotswap", true)
-int paperJavaVersion = readPluginProperty("paper.java_version", 21) as Integer
-
-if (hasEnhancedHotswap) {
-    tasks.withType(AbstractRun.class).configureEach {
-        javaLauncher = javaToolchains.launcherFor {
-            vendor = JvmVendorSpec.JETBRAINS
-            languageVersion = JavaLanguageVersion.of(paperJavaVersion)
-        }
-        jvmArgs("-XX:+AllowEnhancedClassRedefinition")
-    }
-}
-
 tasks {
     runServer {
         minecraftVersion(paperServerVersion)
@@ -80,29 +70,6 @@ tasks {
         archiveBaseName.set(pluginName)
         archiveVersion.set(pluginVersion)
     }
-}
-
-String modrinthProjectId = readPluginProperty("modrinth.project_id", "paper-plugin-template")
-String modrinthVersionNumber = readPluginProperty("modrinth.version_number", "1.0.0")
-String modrinthVersionType = readPluginProperty("modrinth.version_type", "release")
-String modrinthUploadFile = readPluginProperty("modrinth.upload_file", "jar")
-List<String> modrinthGameVersions = readPluginProperty("modrinth.game_versions", ["1.21.4"]) as List<String>
-List<String> modrinthLoaders = readPluginProperty("modrinth.loaders", ["paper"]) as List<String>
-Map<String, List<Map<String, String>>> modrinthDependencies = readPluginProperty("modrinth.dependencies", [:]) as Map<String, List<Map<String, String>>>
-
-modrinth {
-    token = System.getenv("MODRINTH_TOKEN")
-    projectId = modrinthProjectId
-    versionNumber = modrinthVersionNumber
-    versionType = modrinthVersionType
-    uploadFile = modrinthUploadFile
-    gameVersions = modrinthGameVersions
-    loaders = modrinthLoaders
-
-    addModrinthDependencies(modrinthDependencies, "optional", optional)
-    addModrinthDependencies(modrinthDependencies, "required", required)
-    addModrinthDependencies(modrinthDependencies, "incompatible", incompatible)
-    addModrinthDependencies(modrinthDependencies, "embedded", embedded)
 }
 
 processResources {
@@ -129,19 +96,8 @@ def readPluginProperty(String key, def defaultValue = "") {
     return value != null ? value : defaultValue
 }
 
-static def addModrinthDependencies(dependencies, category, handler) {
-    dependencies[category]?.each { dep ->
-        if (dep["type"] == "version") {
-            handler.version dep["name"], dep["version"]
-        } else if (dep["type"] == "project") {
-            handler.project dep["name"]
-        }
-    }
-}
-
 shadowJar {
-    project.configurations.implementation.canBeResolved = true
-    configurations = [project.configurations.implementation]
+    configurations = [project.configurations.bundle]
     minimize()
     relocate "org.bstats", "bstats.mwl"
     archiveFileName = "mWL-" + pluginVersion + ".jar"

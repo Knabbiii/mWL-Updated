@@ -3,12 +3,64 @@ version: ${pluginVersion}
 main: me.truec0der.mwhitelist.MWhitelist
 api-version: ${pluginApiVersion}
 load: STARTUP
-authors: [ TRUEC0DER ]
+authors: [ KNABBIII, TRUEC0DER ]
 description: Server whitelist using MongoDB
-website: https://github.com/TRUEC0DER
+website: https://github.com/Knabbiii
 libraries:
-  - org.mongodb:mongodb-driver-sync:4.11.1
+  - org.mongodb:mongodb-driver-sync:5.4.0
 commands:
   mwhitelist:
     description: "UUID-based server whitelist using MongoDB and more"
     aliases: [ mwl ]
+permissions:
+  mwl.command.*:
+    description: Access to all mWL commands
+    default: op
+    children:
+      mwl.command.help: true
+      mwl.command.info: true
+      mwl.command.toggle: true
+      mwl.command.add: true
+      mwl.command.addtemp: true
+      mwl.command.settemp: true
+      mwl.command.extendtemp: true
+      mwl.command.remove: true
+      mwl.command.list: true
+      mwl.command.check: true
+      mwl.command.reload: true
+  mwl.command.help:
+    description: Use /mwl (show help)
+    default: op
+  mwl.command.info:
+    description: View whitelist status and info
+    default: op
+  mwl.command.toggle:
+    description: Enable or disable the whitelist
+    default: op
+  mwl.command.add:
+    description: Add a player to the whitelist
+    default: op
+  mwl.command.addtemp:
+    description: Add a player to the whitelist for a limited time
+    default: op
+  mwl.command.settemp:
+    description: Set a player's whitelist expiry time
+    default: op
+  mwl.command.extendtemp:
+    description: Extend a player's whitelist time
+    default: op
+  mwl.command.remove:
+    description: Remove a player from the whitelist
+    default: op
+  mwl.command.list:
+    description: List all whitelisted players
+    default: op
+  mwl.command.check:
+    description: Check whitelist info for a specific player
+    default: op
+  mwl.command.reload:
+    description: Reload the plugin configuration and database
+    default: op
+  mwl.whitelist.bypass:
+    description: Bypass the whitelist (must be enabled in config.yml)
+    default: false

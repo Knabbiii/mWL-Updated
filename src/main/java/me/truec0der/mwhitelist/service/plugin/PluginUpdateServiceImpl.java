@@ -1,5 +1,8 @@
 package me.truec0der.mwhitelist.service.plugin;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonSyntaxException;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -8,10 +11,6 @@ import me.truec0der.mwhitelist.model.entity.plugin.PluginVersionEntity;
 import me.truec0der.mwhitelist.util.MessageSerializer;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Bukkit;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -36,7 +35,7 @@ public class PluginUpdateServiceImpl {
     String destinationName;
     LangConfig langConfig;
 
-    private JSONArray getJsonVersions() {
+    private JsonArray getJsonVersions() {
         HttpClient httpClient = HttpClient.newHttpClient();
         HttpRequest httpRequest = HttpRequest.newBuilder()
                 .uri(URI.create(apiUrl))
@@ -46,19 +45,19 @@ public class PluginUpdateServiceImpl {
             HttpResponse<String> response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
             if (response.statusCode() != 200) return null;
 
-            return ((JSONArray) new JSONParser().parse(response.body()));
-        } catch (IOException | ParseException | InterruptedException e) {
+            return new Gson().fromJson(response.body(), JsonArray.class);
+        } catch (IOException | InterruptedException | JsonSyntaxException e) {
             return null;
         }
     }
 
     public List<PluginVersionEntity> getVersions() {
-        JSONArray jsonVersions = getJsonVersions();
+        JsonArray jsonVersions = getJsonVersions();
 
         if (jsonVersions == null) return null;
 
         List<PluginVersionEntity> versionList = new ArrayList<>();
-        jsonVersions.forEach(jsonObject -> versionList.add(PluginVersionEntity.toEntity((JSONObject) jsonObject)));
+        jsonVersions.forEach(element -> versionList.add(PluginVersionEntity.toEntity(element.getAsJsonObject())));
 
         return versionList;
     }
