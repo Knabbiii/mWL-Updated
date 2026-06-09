@@ -4,6 +4,7 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import me.truec0der.mwhitelist.service.ServiceRegister;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -14,7 +15,7 @@ import org.bukkit.event.player.PlayerLoginEvent;
 public class PlayerJoinListener implements Listener {
     ServiceRegister serviceRegister;
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGH)
     private void checkWhitelistOnJoin(PlayerLoginEvent event) {
         serviceRegister.getWhitelistActionService().handleJoin(event);
     }

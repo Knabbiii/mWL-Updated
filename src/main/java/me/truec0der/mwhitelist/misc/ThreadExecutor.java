@@ -15,7 +15,7 @@ public class ThreadExecutor {
         if (Bukkit.isPrimaryThread()) {
             runnable.run();
         } else {
-            plugin.getServer().getGlobalRegionScheduler().run(plugin, task -> runnable.run());
+            Bukkit.getScheduler().runTask(plugin, runnable);
         }
     }
 }

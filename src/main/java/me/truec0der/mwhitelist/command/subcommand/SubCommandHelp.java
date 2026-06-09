@@ -17,8 +17,8 @@ public class SubCommandHelp implements Command {
     @Override
     public CommandEntity getEntity() {
         return CommandEntity.builder()
-                .name(() -> "")
-                .regex(() -> "")
+                .name(() -> "help")
+                .regex(() -> "^$")
                 .completeArgs(() -> new String[0])
                 .permission(() -> "mwl.command.help")
                 .handler(this::handle)

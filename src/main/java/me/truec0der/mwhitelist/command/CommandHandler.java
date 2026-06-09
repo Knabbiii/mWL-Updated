@@ -49,10 +49,11 @@ public class CommandHandler implements CommandExecutor, TabCompleter {
         String[] slicedArgs = args.length > 0 ? Arrays.copyOfRange(args, 1, args.length) : new String[0];
 
         CommandContext commandContext = new CommandContext(sender, slicedArgs);
-        Optional<CommandEntity> emptyCommand = commandController.findEmptyCommands().stream().findFirst();
 
         if (args.length == 0) {
-            return handleEmptyCommand(emptyCommand.orElse(null), commandContext);
+            List<CommandEntity> helpCommands = commandController.findCommands("help");
+            Optional<CommandEntity> helpCommand = helpCommands.stream().findFirst();
+            return handleEmptyCommand(helpCommand.orElse(null), commandContext);
         }
 
         List<CommandEntity> foundCommands = commandController.findCommands(args[0]);

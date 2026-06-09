@@ -18,7 +18,7 @@ public class SubCommandToggle implements Command {
     public CommandEntity getEntity() {
         return CommandEntity.builder()
                 .name(() -> "toggle")
-                .regex(() -> "^(enable|disable)$")
+                .regex(() -> "^(enable|disable)?$")
                 .completeArgs(() -> new String[]{"enable|disable"})
                 .permission(() -> "mwl.command.toggle")
                 .handler(this::handle)
@@ -28,7 +28,8 @@ public class SubCommandToggle implements Command {
     @Override
     public boolean handle(CommandContext context) {
         CommandSender commandSender = context.getSender();
-        String action = context.getArgs()[0];
+        String[] args = context.getArgs();
+        String action = (args.length > 0 && !args[0].isEmpty()) ? args[0] : null;
 
         serviceRegister.getWhitelistActionService().switchWhitelist(commandSender, action);
 

@@ -102,3 +102,26 @@ shadowJar {
     relocate "org.bstats", "bstats.mwl"
     archiveFileName = "mWL-" + pluginVersion + ".jar"
 }
+
+tasks.register("deploy") {
+    dependsOn shadowJar
+    doLast {
+        def jar = file("build/libs/mWL-${pluginVersion}.jar")
+        def servers = [
+            file("../../Test Server/1.18.2/plugins"),
+            file("../../Test Server/26.1.2/plugins"),
+            file("run/server-118/plugins"),
+            file("run/server-2612/plugins"),
+        ]
+        servers.each { dir ->
+            if (dir.exists()) {
+                copy {
+                    from jar
+                    into dir
+                    rename { "mWL.jar" }
+                }
+                println "Deployed to ${dir}"
+            }
+        }
+    }
+}

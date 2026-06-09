@@ -277,6 +277,12 @@ public class WhitelistActionService extends Service {
     public void switchWhitelist(CommandSender sender, String action) {
         LangConfig langConfig = getConfigRegister().getLangConfig();
 
+        if (action == null) {
+            boolean current = getConfigRegister().getMainConfig().getWhitelist().isStatus();
+            setWhitelistStatus(sender, !current);
+            return;
+        }
+
         switch (action) {
             case "enable":
                 setWhitelistStatus(sender, true);

@@ -73,7 +73,7 @@ command:
     added: "%prefix%<white>You have <#1aeb71>added <white>a <#1aeb71>%player_nickname% <white>player to the whitelist until <#1aeb71>%player_time%!"
   set-temp:
     invalid-time: "%prefix%<white>The time you entered is invalid!"
-    extended: "%prefix%<white>You have <#1aeb71>set <white>whitelist time for <#1aeb71>%player_nickname% <white>until <#1aeb71>%player_time%!"
+    setted: "%prefix%<white>You have <#1aeb71>set <white>whitelist time for <#1aeb71>%player_nickname% <white>until <#1aeb71>%player_time%!"
   extend-temp:
     invalid-time: "%prefix%<white>The time you entered is invalid!"
     extended: "%prefix%<white>You have <#1aeb71>extended <white>whitelist time for <#1aeb71>%player_nickname% <white>until <#1aeb71>%player_time%!"

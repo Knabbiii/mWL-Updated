@@ -11,7 +11,7 @@ whitelist:
   kick-on-remove: false # Is kick player from server when remove he from whitelist with command
   bypass:
     permission: # Permission to bypass whitelist join restrictions
-      enabled: false # Is this permission enabled
+      enabled: true # Is this permission enabled
       permission: mwl.whitelist.bypass # Anyone with this permission will be able to enter the server regardless of whether it is on the white list
   player-check: # Checks if the player is on the whitelist and if he still has time, if not, then kicks the player
     enabled: false # Is players check enabled
