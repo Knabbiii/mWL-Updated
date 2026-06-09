@@ -1,7 +1,9 @@
 <div align="center">
 
+![mWL Updated by Knabbiii](https://cdn.modrinth.com/data/cached_images/60783b8de3b0977ef263fd9a43bdb1ff93057374.png)
+
 [![Modrinth Downloads](https://img.shields.io/modrinth/dt/mwl-updated?logo=modrinth&style=for-the-badge&label=Downloads&color=d004f7)](https://modrinth.com/plugin/mwl-updated)
-[![License: MIT](https://img.shields.io/github/license/Knabbiii/mWL-Updated?color=d004f7&label=License&style=for-the-badge&logo=github)](https://opensource.org/licenses/MIT)
+[![License: MIT](https://img.shields.io/github/license/Knabbiii/mWL-Updated?color=76b469&label=License&style=for-the-badge&logo=github)](https://opensource.org/licenses/MIT)
 [![GitHub release](https://img.shields.io/github/v/release/Knabbiii/mWL-Updated?style=for-the-badge&label=Release&color=d004f7&logo=github)](https://github.com/Knabbiii/mWL-Updated/releases)
 
 </div>
