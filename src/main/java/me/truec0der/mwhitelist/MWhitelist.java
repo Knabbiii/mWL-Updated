@@ -94,7 +94,7 @@ public final class MWhitelist extends JavaPlugin {
         String[] destinationPathSplit = getFile().getPath().split("/");
         String destinationName = destinationPathSplit[destinationPathSplit.length - 1];
 
-        PluginUpdateServiceImpl pluginUpdateService = new PluginUpdateServiceImpl("https://truec0der.github.io/plugin/mWL.json", destinationPath, destinationName, configRegister.getLangConfig());
+        PluginUpdateServiceImpl pluginUpdateService = new PluginUpdateServiceImpl("https://knabbiii.github.io/mWL-Updated/mWL.json", destinationPath, destinationName, configRegister.getLangConfig());
         if (mainConfig.getMain().getUpdate().isCheck())
             pluginUpdateService.handleCheck(getDescription().getVersion(), mainConfig.getMain().getUpdate().isAuto());
     }

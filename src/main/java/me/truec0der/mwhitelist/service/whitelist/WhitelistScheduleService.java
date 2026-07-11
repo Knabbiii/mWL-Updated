@@ -11,10 +11,10 @@ import me.truec0der.mwhitelist.misc.ThreadExecutor;
 import me.truec0der.mwhitelist.model.entity.database.PlayerEntity;
 import me.truec0der.mwhitelist.service.Service;
 import me.truec0der.mwhitelist.service.ServiceRegister;
+import me.truec0der.mwhitelist.util.MessageSerializer;
 import me.truec0der.mwhitelist.util.UUIDUtil;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
-import org.bukkit.event.player.PlayerKickEvent;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -56,9 +56,9 @@ public class WhitelistScheduleService extends Service {
                         if (findPlayer.isTimeInfinity() || !findPlayer.isTimeExpired()) return;
                         Component timeExpired = langConfig.getWhitelistTimeExpired()
                                 .replaceText(text -> text.match("%player_time%").replacement(findPlayer.formatTime(mainConfig.getTimeFormat())));
-                        threadExecutor.runInMainThread(() -> onlinePlayer.kick(timeExpired, PlayerKickEvent.Cause.WHITELIST));
+                        threadExecutor.runInMainThread(() -> onlinePlayer.kickPlayer(MessageSerializer.serialize(timeExpired)));
                     }, () -> {
-                        threadExecutor.runInMainThread(() -> onlinePlayer.kick(langConfig.getNotInWhitelist(), PlayerKickEvent.Cause.WHITELIST));
+                        threadExecutor.runInMainThread(() -> onlinePlayer.kickPlayer(MessageSerializer.serialize(langConfig.getNotInWhitelist())));
                     });
                 });
             } catch (Throwable e) {

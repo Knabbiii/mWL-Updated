@@ -38,4 +38,9 @@ public class MessageSerializer {
         LegacyComponentSerializer serializer = LegacyComponentSerializer.builder().hexColors().build();
         return serializer.serialize(create(message, placeholders));
     }
+
+    public String serialize(Component component) {
+        LegacyComponentSerializer serializer = LegacyComponentSerializer.builder().hexColors().build();
+        return serializer.serialize(component);
+    }
 }

@@ -12,6 +12,7 @@ import me.truec0der.mwhitelist.model.entity.database.PlayerEntity;
 import me.truec0der.mwhitelist.model.enums.database.ModeType;
 import me.truec0der.mwhitelist.service.Service;
 import me.truec0der.mwhitelist.service.ServiceRegister;
+import me.truec0der.mwhitelist.util.MessageSerializer;
 import me.truec0der.mwhitelist.util.TimeUtil;
 import me.truec0der.mwhitelist.util.UUIDUtil;
 import net.kyori.adventure.text.Component;
@@ -248,7 +249,7 @@ public class WhitelistActionService extends Service {
                 if (player != null && player.isOnline() && mainConfig.getWhitelist().isKickOnRemove()) {
                     if (mainConfig.getWhitelist().getBypass().getPermission().isEnabled() && player.hasPermission(mainConfig.getWhitelist().getBypass().getPermission().getPermission()))
                         return;
-                    threadExecutor.runInMainThread(() -> player.kick(langConfig.getNotInWhitelist()));
+                    threadExecutor.runInMainThread(() -> player.kickPlayer(MessageSerializer.serialize(langConfig.getNotInWhitelist())));
                 }
 
                 Component removed = removeCommand.getRemoved()
@@ -316,13 +317,13 @@ public class WhitelistActionService extends Service {
             if (findPlayer.isTimeExpired()) {
                 Component timeExpired = langConfig.getWhitelistTimeExpired()
                         .replaceText(text -> text.match("%player_time%").replacement(findPlayer.formatTime(mainConfig.getTimeFormat())));
-                event.disallow(PlayerLoginEvent.Result.KICK_WHITELIST, timeExpired);
+                event.disallow(PlayerLoginEvent.Result.KICK_WHITELIST, MessageSerializer.serialize(timeExpired));
 
                 if (mainConfig.getWhitelist().isRemoveOnExpired())
                     playerRepository.remove(playerUuid, mainConfig.getWhitelist().getMode().isOnline());
             }
         }, () -> {
-            event.disallow(PlayerLoginEvent.Result.KICK_WHITELIST, langConfig.getNotInWhitelist());
+            event.disallow(PlayerLoginEvent.Result.KICK_WHITELIST, MessageSerializer.serialize(langConfig.getNotInWhitelist()));
         });
     }
 
