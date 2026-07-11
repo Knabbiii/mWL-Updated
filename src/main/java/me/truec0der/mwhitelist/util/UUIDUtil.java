@@ -74,13 +74,14 @@ public class UUIDUtil {
 
     public UUID getUuidByMode(String nickname, ModeType mode) {
         UUID offlineUuid = UUIDUtil.getOfflineUuid(nickname);
+        if (!mode.isOnline()) return offlineUuid;
         UUID onlineUuid = UUIDUtil.getOnlineUuid(nickname);
-
-        return mode.isOnline() ? onlineUuid : offlineUuid;
+        return onlineUuid != null ? onlineUuid : offlineUuid;
     }
 
     public UUID getUuidByMode(UUID offlineUuid, UUID onlineUuid, ModeType mode) {
-        return mode.isOnline() ? onlineUuid : offlineUuid;
+        if (mode.isOnline() && onlineUuid != null) return onlineUuid;
+        return offlineUuid;
     }
 
     public static boolean isUuid(String text) {
