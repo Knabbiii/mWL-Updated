@@ -10,11 +10,14 @@
 
 > **A powerful and flexible whitelist plugin for Paper servers — with temporary entries, bypass permissions, and compatibility from 1.18.x to Paper 26.1.x.**
 
+> **Note:** mWL requires your server to run in **online-mode** (premium/licensed accounts). Support for offline/cracked UUIDs has been removed — see [Breaking changes](#breaking-changes-offline-mode-removed) below.
+
 ## Features
 
 - **Temporary whitelist** — Add players for a limited time, auto-removed on expiry
 - **Bypass permission** — Let staff or VIPs join regardless of whitelist status (`mwl.whitelist.bypass`)
 - **Dual database support** — JSON (zero setup) or MongoDB
+- **Always up-to-date names** — A player's stored nickname is refreshed automatically the moment they join with a new name
 - **Expiry notifications** — Warn players when their whitelist time is running out
 - **Auto-kick on remove** — Optionally kick online players when removed
 - **Reload support** — Reload config and language files without restarting
@@ -22,6 +25,7 @@
 - **Multi-language** — Ships with English and Russian, easily customizable
 - **LuckPerms compatible** — Bypass permission works seamlessly with permission plugins
 - **Anonymous metrics** — Optional bStats integration (can be disabled in config)
+- **Addon API** — Public `WhitelistAPI` (via `MWhitelist.getAPI()` or Bukkit's `ServicesManager`) plus custom events for other plugins to hook into
 
 ## Installation
 
@@ -37,7 +41,6 @@ locale: en
 time-format: "dd/MM/yyyy HH:mm:ss"
 whitelist:
   status: false               # Is whitelist enabled
-  mode: ONLINE                # ONLINE (license UUIDs) / OFFLINE (cracked UUIDs)
   remove-on-expired: false    # Remove player from database when their time expires on join
   kick-on-remove: false       # Kick online players when removed from whitelist
   bypass:
@@ -92,6 +95,15 @@ database:
 | `mwl.command.reload` | Reload config | op |
 | `mwl.command.help` | View help | op |
 | `mwl.whitelist.bypass` | Bypass whitelist check entirely | false |
+
+## Breaking changes (offline-mode removed)
+
+Older versions supported both `ONLINE` (premium UUIDs) and `OFFLINE` (name-derived, cracked UUIDs) via the `whitelist.mode` setting. This has been **removed** — mWL now always resolves the real, permanent Mojang UUID:
+
+- `whitelist.mode` no longer exists in `config.yml` — delete it or ignore it, it's no longer read.
+- The plugin now requires your server to run in **online-mode** (`server.properties: online-mode=true`), since it relies on Mojang UUIDs to identify players.
+- Existing `whitelist.json` / MongoDB entries created in `ONLINE` mode keep working as-is. Entries created in `OFFLINE` mode are **migrated automatically** on first read (the plugin falls back to whichever UUID was stored) and are rewritten to the new format the next time that entry is modified — but since offline UUIDs are name-derived rather than the player's real account UUID, those old entries may no longer match the player once matched against their real Mojang UUID. Double-check `/mwl list` after upgrading if you previously ran in `OFFLINE` mode.
+- A player's stored nickname is now refreshed automatically whenever they successfully join under a new name — no more stale names in `/mwl check` or `/mwl list`.
 
 ## Requirements
 

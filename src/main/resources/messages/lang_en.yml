@@ -4,6 +4,7 @@ not-in-whitelist: "%prefix%<white>You are not on the server's whitelist, contact
 whitelist-time-expired: "%prefix%<white>Your time on the whitelist expired at <#1aeb71>%player_time%."
 expired-notify: "%prefix%<white>Your time on the whitelist will expired at <#1aeb71>%player_time%"
 not-perms: "%prefix%<#eb1a3d>You don't have permissions to use this command."
+player-not-found: "%prefix%<#eb1a3d>Could not resolve that player's UUID (unknown or invalid Minecraft account name)."
 main:
   update:
     notify: |-
@@ -51,7 +52,6 @@ command:
       %prefix%<white>Whitelist info
       <#1aeb71>»
       <#1aeb71>» <white>Database: <#1aeb71>%whitelist_database%
-      <#1aeb71>» <white>Mode: <#1aeb71>%whitelist_mode%
       <#1aeb71>»
       <#1aeb71>» <white>Status: <#1aeb71>%whitelist_status%
       <#1aeb71>» <white>Players count: <#1aeb71>%whitelist_size%
@@ -90,8 +90,7 @@ command:
     info: |-
       %prefix%<white>Info about <#1aeb71>%player_nickname%
       <#1aeb71>»
-      <#1aeb71>» <white>Offline UUID: <#1aeb71>%player_offline_uuid%
-      <#1aeb71>» <white>Online UUID: <#1aeb71>%player_online_uuid%
+      <#1aeb71>» <white>UUID: <#1aeb71>%player_uuid%
       <#1aeb71>»
       <#1aeb71>» <white>Nickname history: %player_nickname_list%
       <#1aeb71>»

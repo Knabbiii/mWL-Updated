@@ -6,7 +6,6 @@ main:
     auto: false
 whitelist:
   status: false # Is whitelist enabled
-  mode: ONLINE # ONLINE - use only license uuid's to check player access / OFFLINE - use only non-license uuid's to check player access
   remove-on-expired: false # Is delete player from database on join when he's time is expired
   kick-on-remove: false # Is kick player from server when remove he from whitelist with command
   bypass:

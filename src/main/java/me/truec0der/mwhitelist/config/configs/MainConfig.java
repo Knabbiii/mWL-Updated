@@ -8,7 +8,6 @@ import me.truec0der.mwhitelist.config.base.ConfigSettings;
 import me.truec0der.mwhitelist.config.base.annotation.SerializableEntry;
 import me.truec0der.mwhitelist.config.base.serializer.custom.ComponentSerializer;
 import me.truec0der.mwhitelist.model.enums.database.DatabaseType;
-import me.truec0der.mwhitelist.model.enums.database.ModeType;
 import net.kyori.adventure.text.Component;
 
 import java.text.SimpleDateFormat;
@@ -64,7 +63,6 @@ public class MainConfig extends ConfigHolder<MainConfig> {
     @SerializableEntry
     public static class Whitelist {
         boolean status;
-        ModeType mode;
         boolean removeOnExpired;
         boolean kickOnRemove;
         Bypass bypass = new Bypass();

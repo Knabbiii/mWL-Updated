@@ -33,7 +33,6 @@ public class WhitelistInfoService extends Service {
     }
 
     public void sendPlayerList(CommandSender sender) {
-        MainConfig mainConfig = getConfigRegister().getMainConfig();
         LangConfig langConfig = getConfigRegister().getLangConfig();
 
         PlayerRepository playerRepository = getRepositoryRegister().getPlayerRepository();
@@ -46,25 +45,15 @@ public class WhitelistInfoService extends Service {
 
             findPlayers.forEach(findPlayer -> {
                 List<String> nicknameHistory = findPlayer.getInfo().getNicknameHistory();
+                UUID uuid = findPlayer.getUuid();
                 String displayName;
 
                 if (nicknameHistory.isEmpty()) {
-                    UUID uuid = UUIDUtil.getUuidByMode(
-                            findPlayer.getUuid().getOffline(),
-                            findPlayer.getUuid().getOnline(),
-                            mainConfig.getWhitelist().getMode()
-                    );
                     String uuidStr = uuid.toString();
                     displayName = uuidStr.substring(0, 4) + "..." + uuidStr.substring(uuidStr.length() - 4);
                 } else {
                     displayName = nicknameHistory.get(nicknameHistory.size() - 1);
                 }
-
-                UUID uuid = UUIDUtil.getUuidByMode(
-                        findPlayer.getUuid().getOffline(),
-                        findPlayer.getUuid().getOnline(),
-                        mainConfig.getWhitelist().getMode()
-                );
 
                 Component formattedNickname = listCommand.getPlayer()
                         .replaceText(text -> text.match("%player_nickname%").replacement(displayName))
@@ -87,18 +76,26 @@ public class WhitelistInfoService extends Service {
         });
     }
 
-    public void sendPlayerInfo(CommandSender sender, String nickname) {
+    public void sendPlayerInfo(CommandSender sender, String nicknameOrUuid) {
         MainConfig mainConfig = getConfigRegister().getMainConfig();
         LangConfig langConfig = getConfigRegister().getLangConfig();
 
         PlayerRepository playerRepository = getRepositoryRegister().getPlayerRepository();
 
+        boolean isUuid = UUIDUtil.isUuid(nicknameOrUuid);
+        UUID inputUuid = isUuid ? UUID.fromString(nicknameOrUuid) : null;
+
         CompletableFuture.runAsync(() -> {
             LangConfig.Command.Check checkCommand = langConfig.getCommand().getCheck();
 
-            UUID uuid = UUIDUtil.getUuidByMode(nickname, mainConfig.getWhitelist().getMode());
+            UUID uuid = isUuid ? inputUuid : UUIDUtil.getOnlineUuid(nicknameOrUuid);
 
-            Optional<PlayerEntity> optionalFindPlayer = playerRepository.find(uuid, mainConfig.getWhitelist().getMode().isOnline());
+            if (uuid == null) {
+                threadExecutor.runInMainThread(() -> sender.sendMessage(langConfig.getPlayerNotFound()));
+                return;
+            }
+
+            Optional<PlayerEntity> optionalFindPlayer = playerRepository.find(uuid);
 
             optionalFindPlayer.ifPresentOrElse(findPlayer -> {
                 AtomicReference<Component> nicknameHistoryJoined = new AtomicReference<>(Component.empty());
@@ -106,11 +103,11 @@ public class WhitelistInfoService extends Service {
 
                 nicknameHistory.forEach(nicknameLine -> {
                     Component formattedNickname = checkCommand.getNicknameHistory().getNickname()
-                            .replaceText(text -> text.match("%recorded_nickname%").replacement(nickname));
+                            .replaceText(text -> text.match("%recorded_nickname%").replacement(nicknameOrUuid));
 
                     nicknameHistoryJoined.set(nicknameHistoryJoined.get().append(formattedNickname));
 
-                    int findNicknameIndex = nicknameHistory.indexOf(nickname);
+                    int findNicknameIndex = nicknameHistory.indexOf(nicknameLine);
                     if (findNicknameIndex != nicknameHistory.size() - 1) {
                         nicknameHistoryJoined.set(nicknameHistoryJoined.get().append(checkCommand.getNicknameHistory().getSeparator()));
                     }
@@ -124,9 +121,8 @@ public class WhitelistInfoService extends Service {
                 Component playerTimeAbout = findPlayer.isTimeExpired() ? checkCommand.getTime().getExpired().getAbout() : findPlayer.isTimeInfinity() ? checkCommand.getTime().getInfinity().getAbout() : checkCommand.getTime().getActive().getAbout();
 
                 Component info = checkCommand.getInfo()
-                        .replaceText(text -> text.match("%player_nickname%").replacement(nickname))
-                        .replaceText(text -> text.match("%player_offline_uuid%").replacement(String.valueOf(findPlayer.getUuid().getOffline())))
-                        .replaceText(text -> text.match("%player_online_uuid%").replacement(String.valueOf(findPlayer.getUuid().getOnline())))
+                        .replaceText(text -> text.match("%player_nickname%").replacement(nicknameOrUuid))
+                        .replaceText(text -> text.match("%player_uuid%").replacement(String.valueOf(findPlayer.getUuid())))
                         .replaceText(text -> text.match("%player_nickname_list%").replacement(nicknameHistoryJoined.get()))
                         .replaceText(text -> text.match("%player_last_update%").replacement(formattedPlayerLastUpdate))
                         .replaceText(text -> text.match("%player_time%").replacement(findPlayer.isTimeInfinity() ? checkCommand.getTime().getInfinity().getInfo() : formattedPlayerDate))
@@ -135,7 +131,7 @@ public class WhitelistInfoService extends Service {
                 threadExecutor.runInMainThread(() -> sender.sendMessage(info));
             }, () -> {
                 Component notIn = checkCommand.getNotIn()
-                        .replaceText(text -> text.match("%player_nickname%").replacement(nickname));
+                        .replaceText(text -> text.match("%player_nickname%").replacement(nicknameOrUuid));
 
                 threadExecutor.runInMainThread(() -> sender.sendMessage(notIn));
             });
@@ -156,7 +152,6 @@ public class WhitelistInfoService extends Service {
 
             Component info = infoCommand.getInfo()
                     .replaceText(text -> text.match("%whitelist_database%").replacement(mainConfig.getDatabase().getType().toString()))
-                    .replaceText(text -> text.match("%whitelist_mode%").replacement(mainConfig.getWhitelist().getMode().toString()))
                     .replaceText(text -> text.match("%whitelist_status%").replacement(status ? infoCommand.getStatus().getEnabled() : infoCommand.getStatus().getDisabled()))
                     .replaceText(text -> text.match("%whitelist_size%").replacement(String.valueOf(findPlayers.size())));
 

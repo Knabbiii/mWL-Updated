@@ -1,5 +1,7 @@
 package me.truec0der.mwhitelist;
 
+import me.truec0der.mwhitelist.api.WhitelistAPI;
+import me.truec0der.mwhitelist.api.WhitelistAPIImpl;
 import me.truec0der.mwhitelist.command.CommandController;
 import me.truec0der.mwhitelist.command.CommandHandler;
 import me.truec0der.mwhitelist.config.ConfigRegister;
@@ -12,19 +14,25 @@ import me.truec0der.mwhitelist.service.ServiceRegister;
 import me.truec0der.mwhitelist.service.database.DatabaseConnectionService;
 import me.truec0der.mwhitelist.service.plugin.PluginUpdateServiceImpl;
 import org.bstats.bukkit.Metrics;
+import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.nio.file.Paths;
 
 public final class MWhitelist extends JavaPlugin {
+    private static MWhitelist instance;
+
     private ConfigRegister configRegister;
     private RepositoryRegister repositoryRegister;
     private ServiceRegister serviceRegister;
     private DatabaseConnectionService databaseConnectionService;
     private ThreadExecutor threadExecutor;
+    private WhitelistAPI whitelistAPI;
 
     @Override
     public void onEnable() {
+        instance = this;
+
         initConfig();
         initDatabaseConnection();
         initRepository();
@@ -33,8 +41,13 @@ public final class MWhitelist extends JavaPlugin {
         initListener();
         initMetrics();
         initPluginUpdateService();
+        initApi();
 
         getLogger().info("Plugin enabled!");
+    }
+
+    public static WhitelistAPI getAPI() {
+        return instance.whitelistAPI;
     }
 
     @Override
@@ -97,5 +110,10 @@ public final class MWhitelist extends JavaPlugin {
         PluginUpdateServiceImpl pluginUpdateService = new PluginUpdateServiceImpl("https://knabbiii.github.io/mWL-Updated/mWL.json", destinationPath, destinationName, configRegister.getLangConfig());
         if (mainConfig.getMain().getUpdate().isCheck())
             pluginUpdateService.handleCheck(getDescription().getVersion(), mainConfig.getMain().getUpdate().isAuto());
+    }
+
+    private void initApi() {
+        whitelistAPI = new WhitelistAPIImpl(repositoryRegister, configRegister);
+        getServer().getServicesManager().register(WhitelistAPI.class, whitelistAPI, this, ServicePriority.Normal);
     }
 }

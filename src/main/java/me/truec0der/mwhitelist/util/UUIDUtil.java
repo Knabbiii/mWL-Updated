@@ -4,14 +4,12 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import lombok.experimental.UtilityClass;
 import me.truec0der.mwhitelist.model.entity.mojang.OnlinePlayerEntity;
-import me.truec0der.mwhitelist.model.enums.database.ModeType;
 
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
@@ -28,11 +26,6 @@ public class UUIDUtil {
         );
 
         return UUID.fromString(formattedUUID);
-    }
-
-    public UUID getOfflineUuid(String nickname) {
-        String nicknameFormatted = "OfflinePlayer:%s".formatted(nickname);
-        return UUID.nameUUIDFromBytes(nicknameFormatted.getBytes(StandardCharsets.UTF_8));
     }
 
     public UUID getOnlineUuid(String nickname) {
@@ -70,18 +63,6 @@ public class UUIDUtil {
                     ex.printStackTrace();
                     return null;
                 });
-    }
-
-    public UUID getUuidByMode(String nickname, ModeType mode) {
-        UUID offlineUuid = UUIDUtil.getOfflineUuid(nickname);
-        if (!mode.isOnline()) return offlineUuid;
-        UUID onlineUuid = UUIDUtil.getOnlineUuid(nickname);
-        return onlineUuid != null ? onlineUuid : offlineUuid;
-    }
-
-    public UUID getUuidByMode(UUID offlineUuid, UUID onlineUuid, ModeType mode) {
-        if (mode.isOnline() && onlineUuid != null) return onlineUuid;
-        return offlineUuid;
     }
 
     public static boolean isUuid(String text) {

@@ -2,6 +2,7 @@ package me.truec0der.mwhitelist.service.whitelist;
 
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
+import me.truec0der.mwhitelist.api.event.PlayerWhitelistExpiredEvent;
 import me.truec0der.mwhitelist.config.ConfigRegister;
 import me.truec0der.mwhitelist.config.configs.LangConfig;
 import me.truec0der.mwhitelist.config.configs.MainConfig;
@@ -12,7 +13,6 @@ import me.truec0der.mwhitelist.model.entity.database.PlayerEntity;
 import me.truec0der.mwhitelist.service.Service;
 import me.truec0der.mwhitelist.service.ServiceRegister;
 import me.truec0der.mwhitelist.util.MessageSerializer;
-import me.truec0der.mwhitelist.util.UUIDUtil;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 
@@ -49,11 +49,16 @@ public class WhitelistScheduleService extends Service {
                     if (mainConfig.getWhitelist().getBypass().getPermission().isEnabled() && onlinePlayer.hasPermission(mainConfig.getWhitelist().getBypass().getPermission().getPermission()))
                         return;
 
-                    UUID playerUuid = UUIDUtil.getUuidByMode(onlinePlayer.getName(), mainConfig.getWhitelist().getMode());
+                    UUID playerUuid = onlinePlayer.getUniqueId();
 
-                    Optional<PlayerEntity> optionalFindPlayer = playerRepository.find(playerUuid, mainConfig.getWhitelist().getMode().isOnline());
+                    Optional<PlayerEntity> optionalFindPlayer = playerRepository.find(playerUuid);
                     optionalFindPlayer.ifPresentOrElse(findPlayer -> {
+                        playerRepository.updateNickname(playerUuid, onlinePlayer.getName());
+
                         if (findPlayer.isTimeInfinity() || !findPlayer.isTimeExpired()) return;
+
+                        Bukkit.getPluginManager().callEvent(new PlayerWhitelistExpiredEvent(playerUuid, onlinePlayer.getName()));
+
                         Component timeExpired = langConfig.getWhitelistTimeExpired()
                                 .replaceText(text -> text.match("%player_time%").replacement(findPlayer.formatTime(mainConfig.getTimeFormat())));
                         threadExecutor.runInMainThread(() -> onlinePlayer.kickPlayer(MessageSerializer.serialize(timeExpired)));

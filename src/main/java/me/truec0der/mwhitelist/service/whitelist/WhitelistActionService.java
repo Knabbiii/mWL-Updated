@@ -2,6 +2,10 @@ package me.truec0der.mwhitelist.service.whitelist;
 
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
+import me.truec0der.mwhitelist.api.event.PlayerWhitelistAddEvent;
+import me.truec0der.mwhitelist.api.event.PlayerWhitelistExpiredEvent;
+import me.truec0der.mwhitelist.api.event.PlayerWhitelistRemoveEvent;
+import me.truec0der.mwhitelist.api.event.WhitelistStatusChangeEvent;
 import me.truec0der.mwhitelist.config.ConfigRegister;
 import me.truec0der.mwhitelist.config.configs.LangConfig;
 import me.truec0der.mwhitelist.config.configs.MainConfig;
@@ -9,7 +13,6 @@ import me.truec0der.mwhitelist.impl.repository.RepositoryRegister;
 import me.truec0der.mwhitelist.interfaces.repository.PlayerRepository;
 import me.truec0der.mwhitelist.misc.ThreadExecutor;
 import me.truec0der.mwhitelist.model.entity.database.PlayerEntity;
-import me.truec0der.mwhitelist.model.enums.database.ModeType;
 import me.truec0der.mwhitelist.service.Service;
 import me.truec0der.mwhitelist.service.ServiceRegister;
 import me.truec0der.mwhitelist.util.MessageSerializer;
@@ -38,35 +41,38 @@ public class WhitelistActionService extends Service {
     }
 
     public void addPlayer(CommandSender sender, String nicknameOrUuid) {
-        MainConfig mainConfig = getConfigRegister().getMainConfig();
         LangConfig langConfig = getConfigRegister().getLangConfig();
 
         PlayerRepository playerRepository = getRepositoryRegister().getPlayerRepository();
-
-        ModeType mode = mainConfig.getWhitelist().getMode();
 
         boolean isUuid = UUIDUtil.isUuid(nicknameOrUuid);
         UUID uuid = isUuid ? UUID.fromString(nicknameOrUuid) : null;
 
         CompletableFuture.runAsync(() -> {
-            UUID playerOfflineUuid = isUuid ? uuid : UUIDUtil.getOfflineUuid(nicknameOrUuid);
-            UUID playerOnlineUuid = isUuid ? uuid : UUIDUtil.getOnlineUuid(nicknameOrUuid);
+            UUID playerUuid = isUuid ? uuid : UUIDUtil.getOnlineUuid(nicknameOrUuid);
 
-            UUID playerUuid = UUIDUtil.getUuidByMode(playerOfflineUuid, playerOnlineUuid, mode);
+            if (playerUuid == null) {
+                threadExecutor.runInMainThread(() -> sender.sendMessage(langConfig.getPlayerNotFound()));
+                return;
+            }
 
             LangConfig.Command.Add addCommand = langConfig.getCommand().getAdd();
 
-            Optional<PlayerEntity> optionalFindPlayer = playerRepository.find(playerUuid, mode.isOnline());
+            Optional<PlayerEntity> optionalFindPlayer = playerRepository.find(playerUuid);
             optionalFindPlayer.ifPresentOrElse(findPlayer -> {
                 Component alreadyAdded = addCommand.getAlreadyAdded()
                         .replaceText(text -> text.match("%player_nickname%").replacement(nicknameOrUuid));
 
                 threadExecutor.runInMainThread(() -> sender.sendMessage(alreadyAdded));
             }, () -> {
+                PlayerWhitelistAddEvent addEvent = new PlayerWhitelistAddEvent(playerUuid, nicknameOrUuid, false);
+                Bukkit.getPluginManager().callEvent(addEvent);
+                if (addEvent.isCancelled()) return;
+
                 if (isUuid) {
                     playerRepository.create(uuid);
                 } else {
-                    playerRepository.create(nicknameOrUuid, playerOfflineUuid, playerOnlineUuid);
+                    playerRepository.create(nicknameOrUuid, playerUuid);
                 }
 
                 Component added = addCommand.getAdded()
@@ -81,20 +87,21 @@ public class WhitelistActionService extends Service {
         MainConfig mainConfig = getConfigRegister().getMainConfig();
         LangConfig langConfig = getConfigRegister().getLangConfig();
         PlayerRepository playerRepository = getRepositoryRegister().getPlayerRepository();
-        ModeType modeType = mainConfig.getWhitelist().getMode();
 
         boolean isUuid = UUIDUtil.isUuid(nicknameOrUuid);
         UUID uuid = isUuid ? UUID.fromString(nicknameOrUuid) : null;
 
         CompletableFuture.runAsync(() -> {
-            UUID offlineUuid = isUuid ? uuid : UUIDUtil.getOfflineUuid(nicknameOrUuid);
-            UUID onlineUuid = isUuid ? uuid : UUIDUtil.getOnlineUuid(nicknameOrUuid);
+            UUID playerUuid = isUuid ? uuid : UUIDUtil.getOnlineUuid(nicknameOrUuid);
 
-            UUID playerUuid = UUIDUtil.getUuidByMode(offlineUuid, onlineUuid, modeType);
+            if (playerUuid == null) {
+                threadExecutor.runInMainThread(() -> sender.sendMessage(langConfig.getPlayerNotFound()));
+                return;
+            }
 
             LangConfig.Command.AddTemp addTemp = langConfig.getCommand().getAddTemp();
 
-            Optional<PlayerEntity> optionalPlayer = playerRepository.find(playerUuid, modeType.isOnline());
+            Optional<PlayerEntity> optionalPlayer = playerRepository.find(playerUuid);
             if (optionalPlayer.isPresent()) {
                 Component alreadyAddedMessage = addTemp.getAlreadyAdded()
                         .replaceText(text -> text.match("%player_nickname%").replacement(nicknameOrUuid));
@@ -108,13 +115,17 @@ public class WhitelistActionService extends Service {
             long currentTime = System.currentTimeMillis();
             long expirationTime = currentTime + additionalTime;
 
+            PlayerWhitelistAddEvent addEvent = new PlayerWhitelistAddEvent(playerUuid, nicknameOrUuid, true);
+            Bukkit.getPluginManager().callEvent(addEvent);
+            if (addEvent.isCancelled()) return;
+
             if (isUuid) {
                 playerRepository.create(uuid);
             } else {
-                playerRepository.create(nicknameOrUuid, offlineUuid, onlineUuid);
+                playerRepository.create(nicknameOrUuid, playerUuid);
             }
 
-            playerRepository.setTime(playerUuid, modeType.isOnline(), expirationTime);
+            playerRepository.setTime(playerUuid, expirationTime);
 
             Component addedMessage = addTemp.getAdded()
                     .replaceText(text -> text.match("%player_nickname%").replacement(nicknameOrUuid))
@@ -129,16 +140,17 @@ public class WhitelistActionService extends Service {
         MainConfig mainConfig = getConfigRegister().getMainConfig();
         LangConfig langConfig = getConfigRegister().getLangConfig();
         PlayerRepository playerRepository = getRepositoryRegister().getPlayerRepository();
-        ModeType modeType = mainConfig.getWhitelist().getMode();
 
         boolean isUuid = UUIDUtil.isUuid(nicknameOrUuid);
         UUID uuid = isUuid ? UUID.fromString(nicknameOrUuid) : null;
 
         CompletableFuture.runAsync(() -> {
-            UUID offlineUuid = isUuid ? uuid : UUIDUtil.getOfflineUuid(nicknameOrUuid);
-            UUID onlineUuid = isUuid ? uuid : UUIDUtil.getOnlineUuid(nicknameOrUuid);
+            UUID playerUuid = isUuid ? uuid : UUIDUtil.getOnlineUuid(nicknameOrUuid);
 
-            UUID playerUuid = UUIDUtil.getUuidByMode(offlineUuid, onlineUuid, modeType);
+            if (playerUuid == null) {
+                threadExecutor.runInMainThread(() -> sender.sendMessage(langConfig.getPlayerNotFound()));
+                return;
+            }
 
             LangConfig.Command.SetTemp setTemp = langConfig.getCommand().getSetTemp();
 
@@ -147,18 +159,18 @@ public class WhitelistActionService extends Service {
 
             long currentTime = System.currentTimeMillis();
 
-            Optional<PlayerEntity> optionalPlayer = playerRepository.find(playerUuid, modeType.isOnline());
+            Optional<PlayerEntity> optionalPlayer = playerRepository.find(playerUuid);
             long newExpirationTime = currentTime + newTime;
 
             if (optionalPlayer.isEmpty()) {
                 if (isUuid) {
                     playerRepository.create(uuid);
                 } else {
-                    playerRepository.create(nicknameOrUuid, offlineUuid, onlineUuid);
+                    playerRepository.create(nicknameOrUuid, playerUuid);
                 }
             }
 
-            playerRepository.setTime(playerUuid, modeType.isOnline(), newExpirationTime);
+            playerRepository.setTime(playerUuid, newExpirationTime);
 
             Component extendedMessage = setTemp.getSetted()
                     .replaceText(text -> text.match("%player_nickname%").replacement(nicknameOrUuid))
@@ -173,16 +185,17 @@ public class WhitelistActionService extends Service {
         MainConfig mainConfig = getConfigRegister().getMainConfig();
         LangConfig langConfig = getConfigRegister().getLangConfig();
         PlayerRepository playerRepository = getRepositoryRegister().getPlayerRepository();
-        ModeType modeType = mainConfig.getWhitelist().getMode();
 
         boolean isUuid = UUIDUtil.isUuid(nicknameOrUuid);
         UUID uuid = isUuid ? UUID.fromString(nicknameOrUuid) : null;
 
         CompletableFuture.runAsync(() -> {
-            UUID offlineUuid = isUuid ? uuid : UUIDUtil.getOfflineUuid(nicknameOrUuid);
-            UUID onlineUuid = isUuid ? uuid : UUIDUtil.getOnlineUuid(nicknameOrUuid);
+            UUID playerUuid = isUuid ? uuid : UUIDUtil.getOnlineUuid(nicknameOrUuid);
 
-            UUID playerUuid = UUIDUtil.getUuidByMode(offlineUuid, onlineUuid, modeType);
+            if (playerUuid == null) {
+                threadExecutor.runInMainThread(() -> sender.sendMessage(langConfig.getPlayerNotFound()));
+                return;
+            }
 
             LangConfig.Command.ExtendTemp extendTemp = langConfig.getCommand().getExtendTemp();
 
@@ -191,7 +204,7 @@ public class WhitelistActionService extends Service {
 
             long currentTime = System.currentTimeMillis();
 
-            Optional<PlayerEntity> optionalPlayer = playerRepository.find(playerUuid, modeType.isOnline());
+            Optional<PlayerEntity> optionalPlayer = playerRepository.find(playerUuid);
             long newExpirationTime;
 
             if (optionalPlayer.isPresent()) {
@@ -203,11 +216,11 @@ public class WhitelistActionService extends Service {
                 if (isUuid) {
                     playerRepository.create(uuid);
                 } else {
-                    playerRepository.create(nicknameOrUuid, offlineUuid, onlineUuid);
+                    playerRepository.create(nicknameOrUuid, playerUuid);
                 }
             }
 
-            playerRepository.setTime(playerUuid, modeType.isOnline(), newExpirationTime);
+            playerRepository.setTime(playerUuid, newExpirationTime);
 
             Component extendedMessage = extendTemp.getExtended()
                     .replaceText(text -> text.match("%player_nickname%").replacement(nicknameOrUuid))
@@ -224,27 +237,28 @@ public class WhitelistActionService extends Service {
 
         PlayerRepository playerRepository = getRepositoryRegister().getPlayerRepository();
 
-        ModeType mode = mainConfig.getWhitelist().getMode();
-
         boolean isUuid = UUIDUtil.isUuid(nicknameOrUuid);
         UUID uuid = isUuid ? UUID.fromString(nicknameOrUuid) : null;
 
         CompletableFuture.runAsync(() -> {
-            UUID playerUuid;
+            UUID playerUuid = isUuid ? uuid : UUIDUtil.getOnlineUuid(nicknameOrUuid);
 
-            if (isUuid) {
-                playerUuid = uuid;
-            } else {
-                playerUuid = UUIDUtil.getUuidByMode(nicknameOrUuid, mode);
+            if (playerUuid == null) {
+                threadExecutor.runInMainThread(() -> sender.sendMessage(langConfig.getPlayerNotFound()));
+                return;
             }
 
             LangConfig.Command.Remove removeCommand = langConfig.getCommand().getRemove();
 
             Player player = Bukkit.getPlayer(nicknameOrUuid);
 
-            Optional<PlayerEntity> optionalFindPlayer = playerRepository.find(playerUuid, mode.isOnline());
+            Optional<PlayerEntity> optionalFindPlayer = playerRepository.find(playerUuid);
             optionalFindPlayer.ifPresentOrElse(findPlayer -> {
-                playerRepository.remove(playerUuid, mode.isOnline());
+                PlayerWhitelistRemoveEvent removeEvent = new PlayerWhitelistRemoveEvent(playerUuid, nicknameOrUuid);
+                Bukkit.getPluginManager().callEvent(removeEvent);
+                if (removeEvent.isCancelled()) return;
+
+                playerRepository.remove(playerUuid);
 
                 if (player != null && player.isOnline() && mainConfig.getWhitelist().isKickOnRemove()) {
                     if (mainConfig.getWhitelist().getBypass().getPermission().isEnabled() && player.hasPermission(mainConfig.getWhitelist().getBypass().getPermission().getPermission()))
@@ -270,6 +284,11 @@ public class WhitelistActionService extends Service {
         LangConfig langConfig = getConfigRegister().getLangConfig();
 
         LangConfig.Command.Toggle toggleCommand = langConfig.getCommand().getToggle();
+
+        WhitelistStatusChangeEvent statusChangeEvent = new WhitelistStatusChangeEvent(status);
+        Bukkit.getPluginManager().callEvent(statusChangeEvent);
+        if (statusChangeEvent.isCancelled()) return;
+
         mainConfig.setStatus(status);
 
         sender.sendMessage(status ? toggleCommand.getEnabled() : toggleCommand.getDisabled());
@@ -309,18 +328,22 @@ public class WhitelistActionService extends Service {
         if (mainConfig.getWhitelist().getBypass().getPermission().isEnabled() && player.hasPermission(mainConfig.getWhitelist().getBypass().getPermission().getPermission()))
             return;
 
-        UUID playerUuid = UUIDUtil.getUuidByMode(player.getName(), mainConfig.getWhitelist().getMode());
+        UUID playerUuid = player.getUniqueId();
 
-        Optional<PlayerEntity> optionalFindPlayer = playerRepository.find(playerUuid, mainConfig.getWhitelist().getMode().isOnline());
+        Optional<PlayerEntity> optionalFindPlayer = playerRepository.find(playerUuid);
         optionalFindPlayer.ifPresentOrElse(findPlayer -> {
+            playerRepository.updateNickname(playerUuid, player.getName());
+
             if (findPlayer.isTimeInfinity()) return;
             if (findPlayer.isTimeExpired()) {
+                Bukkit.getPluginManager().callEvent(new PlayerWhitelistExpiredEvent(playerUuid, player.getName()));
+
                 Component timeExpired = langConfig.getWhitelistTimeExpired()
                         .replaceText(text -> text.match("%player_time%").replacement(findPlayer.formatTime(mainConfig.getTimeFormat())));
                 event.disallow(PlayerLoginEvent.Result.KICK_WHITELIST, MessageSerializer.serialize(timeExpired));
 
                 if (mainConfig.getWhitelist().isRemoveOnExpired())
-                    playerRepository.remove(playerUuid, mainConfig.getWhitelist().getMode().isOnline());
+                    playerRepository.remove(playerUuid);
             }
         }, () -> {
             event.disallow(PlayerLoginEvent.Result.KICK_WHITELIST, MessageSerializer.serialize(langConfig.getNotInWhitelist()));
@@ -336,9 +359,9 @@ public class WhitelistActionService extends Service {
         Player player = event.getPlayer();
 
         CompletableFuture.runAsync(() -> {
-            UUID playerUuid = UUIDUtil.getUuidByMode(player.getName(), mainConfig.getWhitelist().getMode());
+            UUID playerUuid = player.getUniqueId();
 
-            Optional<PlayerEntity> optionalFindPlayer = playerRepository.find(playerUuid, mainConfig.getWhitelist().getMode().isOnline());
+            Optional<PlayerEntity> optionalFindPlayer = playerRepository.find(playerUuid);
             optionalFindPlayer.ifPresent(findPlayer -> {
                 Long estimatedTime = findPlayer.getEstimatedTime();
                 Long timeToNotify = mainConfig.getWhitelist().getExpiredNotify().getTime();

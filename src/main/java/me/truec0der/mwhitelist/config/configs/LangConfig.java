@@ -21,6 +21,7 @@ public class LangConfig extends ConfigHolder<LangConfig> {
     Component whitelistTimeExpired;
     Component expiredNotify;
     Component notPerms;
+    Component playerNotFound;
     Main main = new Main();
     Command command = new Command();
 

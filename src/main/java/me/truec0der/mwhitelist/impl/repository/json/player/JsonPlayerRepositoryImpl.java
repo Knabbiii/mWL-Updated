@@ -41,14 +41,13 @@ public class JsonPlayerRepositoryImpl extends PlayerRepository {
         return findPlayers;
     }
 
-    private JsonObject findJsonObject(UUID uuid, boolean isOnline) {
+    private JsonObject findJsonObject(UUID uuid) {
         List<JsonObject> jsonObjects = findJsonObject();
 
         return jsonObjects.stream()
                 .filter(jsonObject -> {
                     PlayerEntity playerEntity = PlayerEntity.toEntity(jsonObject);
-                    PlayerEntity.PlayerUuid playerUuid = playerEntity.getUuid();
-                    return playerEntity != null && isOnline ? playerUuid.getOnline().equals(uuid) : playerUuid.getOffline().equals(uuid);
+                    return playerEntity != null && playerEntity.getUuid().equals(uuid);
                 })
                 .findFirst()
                 .orElse(null);
@@ -68,24 +67,24 @@ public class JsonPlayerRepositoryImpl extends PlayerRepository {
     }
 
     @Override
-    public Optional<PlayerEntity> find(UUID uuid, boolean isOnline) {
-        JsonObject jsonObject = findJsonObject(uuid, isOnline);
+    public Optional<PlayerEntity> find(UUID uuid) {
+        JsonObject jsonObject = findJsonObject(uuid);
         if (jsonObject == null) return Optional.empty();
-        return Optional.ofNullable(PlayerEntity.toEntity(findJsonObject(uuid, isOnline)));
+        return Optional.ofNullable(PlayerEntity.toEntity(jsonObject));
     }
 
     @Override
-    public boolean isExists(UUID uuid, boolean isOnline) {
-        return find(uuid, isOnline).isPresent();
+    public boolean isExists(UUID uuid) {
+        return find(uuid).isPresent();
     }
 
     @Override
-    public void create(String nickname, UUID offlineUuid, UUID onlineUuid) {
+    public void create(String nickname, UUID uuid) {
         JsonArray database = jsonRepository.getDatabase();
         Gson gson = jsonRepository.getGson();
 
         PlayerEntity playerEntity = PlayerEntity.builder()
-                .uuid(new PlayerEntity.PlayerUuid(offlineUuid, onlineUuid == null ? offlineUuid : onlineUuid))
+                .uuid(uuid)
                 .info(new PlayerEntity.PlayerInfo(List.of(nickname), new Date().getTime()))
                 .time(-1L)
                 .build();
@@ -100,7 +99,7 @@ public class JsonPlayerRepositoryImpl extends PlayerRepository {
         Gson gson = jsonRepository.getGson();
 
         PlayerEntity playerEntity = PlayerEntity.builder()
-                .uuid(new PlayerEntity.PlayerUuid(uuid, uuid))
+                .uuid(uuid)
                 .info(new PlayerEntity.PlayerInfo(List.of(), new Date().getTime()))
                 .time(-1L)
                 .build();
@@ -110,23 +109,46 @@ public class JsonPlayerRepositoryImpl extends PlayerRepository {
     }
 
     @Override
-    public void remove(UUID uuid, boolean isOnline) {
+    public void remove(UUID uuid) {
         JsonArray database = jsonRepository.getDatabase();
 
-        database.remove(findJsonObject(uuid, isOnline));
+        database.remove(findJsonObject(uuid));
         jsonRepository.save();
     }
 
     @Override
-    public void setTime(UUID uuid, boolean isOnline, long time) {
+    public void setTime(UUID uuid, long time) {
         JsonArray database = jsonRepository.getDatabase();
         Gson gson = jsonRepository.getGson();
 
-        Optional<PlayerEntity> optionalFindPlayer = find(uuid, isOnline);
+        Optional<PlayerEntity> optionalFindPlayer = find(uuid);
         optionalFindPlayer.ifPresent(findPlayer -> {
             findPlayer.setTime(time);
 
-            JsonObject jsonObject = findJsonObject(uuid, isOnline);
+            JsonObject jsonObject = findJsonObject(uuid);
+            int jsonObjectIndex = findJsonObjectIndex(jsonObject);
+
+            database.set(jsonObjectIndex, gson.toJsonTree(findPlayer));
+            jsonRepository.save();
+        });
+    }
+
+    @Override
+    public void updateNickname(UUID uuid, String name) {
+        JsonArray database = jsonRepository.getDatabase();
+        Gson gson = jsonRepository.getGson();
+
+        Optional<PlayerEntity> optionalFindPlayer = find(uuid);
+        optionalFindPlayer.ifPresent(findPlayer -> {
+            List<String> nicknameHistory = findPlayer.getInfo().getNicknameHistory();
+            if (!nicknameHistory.isEmpty() && nicknameHistory.get(nicknameHistory.size() - 1).equals(name)) return;
+
+            List<String> updatedHistory = new ArrayList<>(nicknameHistory);
+            updatedHistory.add(name);
+
+            findPlayer.setInfo(new PlayerEntity.PlayerInfo(updatedHistory, new Date().getTime()));
+
+            JsonObject jsonObject = findJsonObject(uuid);
             int jsonObjectIndex = findJsonObjectIndex(jsonObject);
 
             database.set(jsonObjectIndex, gson.toJsonTree(findPlayer));

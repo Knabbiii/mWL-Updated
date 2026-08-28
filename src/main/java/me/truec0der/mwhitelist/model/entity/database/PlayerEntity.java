@@ -1,6 +1,7 @@
 package me.truec0der.mwhitelist.model.entity.database;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -18,7 +19,7 @@ import java.util.UUID;
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class PlayerEntity {
-    @Nullable PlayerUuid uuid;
+    @Nullable UUID uuid;
     @Nullable PlayerInfo info;
     @Nullable Long time;
 
@@ -27,11 +28,8 @@ public class PlayerEntity {
 
         if (!jsonObject.has("uuid") || !jsonObject.has("info")) return null;
 
-        JsonObject uuid = jsonObject.getAsJsonObject("uuid");
+        UUID uuid = readUuid(jsonObject.get("uuid"));
         JsonObject info = jsonObject.getAsJsonObject("info");
-
-        UUID offlineUuid = UUID.fromString(uuid.get("offline").getAsString());
-        UUID onlineUuid = UUID.fromString(uuid.get("online").getAsString());
 
         List<String> nicknameHistory = Arrays.asList(gson.fromJson(info.get("nicknameHistory").getAsJsonArray(), String[].class));
         long lastUpdate = info.get("lastUpdate").getAsLong();
@@ -39,23 +37,37 @@ public class PlayerEntity {
         Long time = jsonObject.has("time") ? jsonObject.get("time").getAsLong() : -1;
 
         return PlayerEntity.builder()
-                .uuid(new PlayerUuid(offlineUuid, onlineUuid))
+                .uuid(uuid)
                 .info(new PlayerInfo(nicknameHistory, lastUpdate))
                 .time(time)
                 .build();
     }
 
+    /**
+     * Legacy entries (pre offline-mode removal) stored uuid as a nested
+     * {online, offline} object instead of a plain string. Migrate them
+     * transparently by preferring the online uuid.
+     */
+    private static UUID readUuid(JsonElement uuidElement) {
+        if (uuidElement.isJsonObject()) {
+            JsonObject uuidObject = uuidElement.getAsJsonObject();
+            String legacyUuid = uuidObject.has("online") ? uuidObject.get("online").getAsString() : uuidObject.get("offline").getAsString();
+            return UUID.fromString(legacyUuid);
+        }
+
+        return UUID.fromString(uuidElement.getAsString());
+    }
+
     public static PlayerEntity fromDocument(Document document) {
-        Document uuidDocument = (Document) document.get("uuid");
         Document infoDocument = (Document) document.get("info");
 
+        Object rawUuid = document.get("uuid");
+        UUID uuid = rawUuid instanceof Document legacyUuid
+                ? UUID.fromString(legacyUuid.containsKey("online") ? legacyUuid.getString("online") : legacyUuid.getString("offline"))
+                : UUID.fromString((String) rawUuid);
+
         return PlayerEntity.builder()
-                .uuid(
-                        new PlayerUuid(
-                                UUID.fromString(uuidDocument.getString("offline")),
-                                UUID.fromString(uuidDocument.getString("online"))
-                        )
-                )
+                .uuid(uuid)
                 .info(
                         new PlayerInfo(
                                 infoDocument.getList("nicknameHistory", String.class),
@@ -67,16 +79,12 @@ public class PlayerEntity {
     }
 
     public Document toDocument() {
-        Document uuidDocument = new Document()
-                .append("offline", uuid.getOffline().toString())
-                .append("online", uuid.getOnline().toString());
-
         Document infoDocument = new Document()
                 .append("nicknameHistory", info.getNicknameHistory())
                 .append("lastUpdate", info.getLastUpdate());
 
         return new Document()
-                .append("uuid", uuidDocument)
+                .append("uuid", uuid.toString())
                 .append("info", infoDocument)
                 .append("time", time);
     }
@@ -103,15 +111,6 @@ public class PlayerEntity {
 
     public String formatTime(SimpleDateFormat format) {
         return format.format(new Date(time));
-    }
-
-    @AllArgsConstructor
-    @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-    @Getter
-    @Setter
-    public static class PlayerUuid {
-        UUID offline;
-        UUID online;
     }
 
     @AllArgsConstructor
