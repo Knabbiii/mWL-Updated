@@ -8,6 +8,7 @@ import me.truec0der.mwhitelist.config.configs.MainConfig;
 import me.truec0der.mwhitelist.impl.repository.RepositoryRegister;
 import me.truec0der.mwhitelist.service.Service;
 import me.truec0der.mwhitelist.service.ServiceRegister;
+import me.truec0der.mwhitelist.util.MessageSerializer;
 import org.bukkit.command.CommandSender;
 
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
@@ -32,6 +33,6 @@ public class PluginReloadService extends Service {
         reload();
 
         LangConfig langConfig = getConfigRegister().getLangConfig();
-        sender.sendMessage(langConfig.getCommand().getReload().getInfo());
+        MessageSerializer.send(sender, langConfig.getCommand().getReload().getInfo());
     }
 }

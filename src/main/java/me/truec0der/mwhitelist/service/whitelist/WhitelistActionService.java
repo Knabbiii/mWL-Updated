@@ -52,7 +52,7 @@ public class WhitelistActionService extends Service {
             UUID playerUuid = isUuid ? uuid : UUIDUtil.getOnlineUuid(nicknameOrUuid);
 
             if (playerUuid == null) {
-                threadExecutor.runInMainThread(() -> sender.sendMessage(langConfig.getPlayerNotFound()));
+                threadExecutor.runInMainThread(() -> MessageSerializer.send(sender, langConfig.getPlayerNotFound()));
                 return;
             }
 
@@ -63,7 +63,7 @@ public class WhitelistActionService extends Service {
                 Component alreadyAdded = addCommand.getAlreadyAdded()
                         .replaceText(text -> text.match("%player_nickname%").replacement(nicknameOrUuid));
 
-                threadExecutor.runInMainThread(() -> sender.sendMessage(alreadyAdded));
+                threadExecutor.runInMainThread(() -> MessageSerializer.send(sender, alreadyAdded));
             }, () -> {
                 PlayerWhitelistAddEvent addEvent = new PlayerWhitelistAddEvent(playerUuid, nicknameOrUuid, false);
                 Bukkit.getPluginManager().callEvent(addEvent);
@@ -78,7 +78,7 @@ public class WhitelistActionService extends Service {
                 Component added = addCommand.getAdded()
                         .replaceText(text -> text.match("%player_nickname%").replacement(nicknameOrUuid));
 
-                threadExecutor.runInMainThread(() -> sender.sendMessage(added));
+                threadExecutor.runInMainThread(() -> MessageSerializer.send(sender, added));
             });
         });
     }
@@ -95,7 +95,7 @@ public class WhitelistActionService extends Service {
             UUID playerUuid = isUuid ? uuid : UUIDUtil.getOnlineUuid(nicknameOrUuid);
 
             if (playerUuid == null) {
-                threadExecutor.runInMainThread(() -> sender.sendMessage(langConfig.getPlayerNotFound()));
+                threadExecutor.runInMainThread(() -> MessageSerializer.send(sender, langConfig.getPlayerNotFound()));
                 return;
             }
 
@@ -105,7 +105,7 @@ public class WhitelistActionService extends Service {
             if (optionalPlayer.isPresent()) {
                 Component alreadyAddedMessage = addTemp.getAlreadyAdded()
                         .replaceText(text -> text.match("%player_nickname%").replacement(nicknameOrUuid));
-                threadExecutor.runInMainThread(() -> sender.sendMessage(alreadyAddedMessage));
+                threadExecutor.runInMainThread(() -> MessageSerializer.send(sender, alreadyAddedMessage));
                 return;
             }
 
@@ -132,7 +132,7 @@ public class WhitelistActionService extends Service {
                     .replaceText(text -> text.match("%player_time%")
                             .replacement(mainConfig.getTimeFormat().format(new Date(expirationTime))));
 
-            threadExecutor.runInMainThread(() -> sender.sendMessage(addedMessage));
+            threadExecutor.runInMainThread(() -> MessageSerializer.send(sender, addedMessage));
         });
     }
 
@@ -148,7 +148,7 @@ public class WhitelistActionService extends Service {
             UUID playerUuid = isUuid ? uuid : UUIDUtil.getOnlineUuid(nicknameOrUuid);
 
             if (playerUuid == null) {
-                threadExecutor.runInMainThread(() -> sender.sendMessage(langConfig.getPlayerNotFound()));
+                threadExecutor.runInMainThread(() -> MessageSerializer.send(sender, langConfig.getPlayerNotFound()));
                 return;
             }
 
@@ -177,7 +177,7 @@ public class WhitelistActionService extends Service {
                     .replaceText(text -> text.match("%player_time%")
                             .replacement(mainConfig.getTimeFormat().format(new Date(newExpirationTime))));
 
-            threadExecutor.runInMainThread(() -> sender.sendMessage(extendedMessage));
+            threadExecutor.runInMainThread(() -> MessageSerializer.send(sender, extendedMessage));
         });
     }
 
@@ -193,7 +193,7 @@ public class WhitelistActionService extends Service {
             UUID playerUuid = isUuid ? uuid : UUIDUtil.getOnlineUuid(nicknameOrUuid);
 
             if (playerUuid == null) {
-                threadExecutor.runInMainThread(() -> sender.sendMessage(langConfig.getPlayerNotFound()));
+                threadExecutor.runInMainThread(() -> MessageSerializer.send(sender, langConfig.getPlayerNotFound()));
                 return;
             }
 
@@ -227,7 +227,7 @@ public class WhitelistActionService extends Service {
                     .replaceText(text -> text.match("%player_time%")
                             .replacement(mainConfig.getTimeFormat().format(new Date(newExpirationTime))));
 
-            threadExecutor.runInMainThread(() -> sender.sendMessage(extendedMessage));
+            threadExecutor.runInMainThread(() -> MessageSerializer.send(sender, extendedMessage));
         });
     }
 
@@ -244,7 +244,7 @@ public class WhitelistActionService extends Service {
             UUID playerUuid = isUuid ? uuid : UUIDUtil.getOnlineUuid(nicknameOrUuid);
 
             if (playerUuid == null) {
-                threadExecutor.runInMainThread(() -> sender.sendMessage(langConfig.getPlayerNotFound()));
+                threadExecutor.runInMainThread(() -> MessageSerializer.send(sender, langConfig.getPlayerNotFound()));
                 return;
             }
 
@@ -269,12 +269,12 @@ public class WhitelistActionService extends Service {
                 Component removed = removeCommand.getRemoved()
                         .replaceText(text -> text.match("%player_nickname%").replacement(nicknameOrUuid));
 
-                threadExecutor.runInMainThread(() -> sender.sendMessage(removed));
+                threadExecutor.runInMainThread(() -> MessageSerializer.send(sender, removed));
             }, () -> {
                 Component notIn = removeCommand.getNotIn()
                         .replaceText(text -> text.match("%player_nickname%").replacement(nicknameOrUuid));
 
-                threadExecutor.runInMainThread(() -> sender.sendMessage(notIn));
+                threadExecutor.runInMainThread(() -> MessageSerializer.send(sender, notIn));
             });
         });
     }
@@ -291,7 +291,7 @@ public class WhitelistActionService extends Service {
 
         mainConfig.setStatus(status);
 
-        sender.sendMessage(status ? toggleCommand.getEnabled() : toggleCommand.getDisabled());
+        MessageSerializer.send(sender, status ? toggleCommand.getEnabled() : toggleCommand.getDisabled());
     }
 
     public void switchWhitelist(CommandSender sender, String action) {
@@ -311,7 +311,7 @@ public class WhitelistActionService extends Service {
                 setWhitelistStatus(sender, false);
                 break;
             default:
-                sender.sendMessage(langConfig.getCommand().getToggle().getInvalidAction());
+                MessageSerializer.send(sender, langConfig.getCommand().getToggle().getInvalidAction());
         }
     }
 
@@ -374,7 +374,7 @@ public class WhitelistActionService extends Service {
                 Component expiredNotify = langConfig.getExpiredNotify()
                         .replaceText(text -> text.match("%player_time%").replacement(findPlayer.formatTime(mainConfig.getTimeFormat())));
 
-                threadExecutor.runInMainThread(() -> player.sendMessage(expiredNotify));
+                threadExecutor.runInMainThread(() -> MessageSerializer.send(player, expiredNotify));
             });
         });
     }
@@ -385,13 +385,13 @@ public class WhitelistActionService extends Service {
             try {
                 time = Long.parseLong(String.join("", Arrays.copyOfRange(timeArgs, 1, timeArgs.length)));
             } catch (NumberFormatException e) {
-                threadExecutor.runInMainThread(() -> sender.sendMessage(invalidTimeMessage));
+                threadExecutor.runInMainThread(() -> MessageSerializer.send(sender, invalidTimeMessage));
                 return 0;
             }
         }
 
         if (time <= 0) {
-            threadExecutor.runInMainThread(() -> sender.sendMessage(invalidTimeMessage));
+            threadExecutor.runInMainThread(() -> MessageSerializer.send(sender, invalidTimeMessage));
             return 0;
         }
 

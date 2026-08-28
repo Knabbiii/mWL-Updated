@@ -4,6 +4,7 @@ import lombok.experimental.UtilityClass;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import org.bukkit.command.CommandSender;
 
 import java.util.Map;
 
@@ -42,5 +43,9 @@ public class MessageSerializer {
     public String serialize(Component component) {
         LegacyComponentSerializer serializer = LegacyComponentSerializer.builder().hexColors().build();
         return serializer.serialize(component);
+    }
+
+    public void send(CommandSender sender, Component component) {
+        sender.sendMessage(serialize(component));
     }
 }

@@ -11,6 +11,7 @@ import me.truec0der.mwhitelist.misc.ThreadExecutor;
 import me.truec0der.mwhitelist.model.entity.database.PlayerEntity;
 import me.truec0der.mwhitelist.service.Service;
 import me.truec0der.mwhitelist.service.ServiceRegister;
+import me.truec0der.mwhitelist.util.MessageSerializer;
 import me.truec0der.mwhitelist.util.UUIDUtil;
 import net.kyori.adventure.text.Component;
 import org.bukkit.command.CommandSender;
@@ -72,7 +73,7 @@ public class WhitelistInfoService extends Service {
                     .replaceText(text -> text.match("%player_list%").replacement(playerList.get()));
 
             Component result = playerList.get().equals(Component.empty()) ? listCommand.getEmpty() : info;
-            threadExecutor.runInMainThread(() -> sender.sendMessage(result));
+            threadExecutor.runInMainThread(() -> MessageSerializer.send(sender, result));
         });
     }
 
@@ -91,7 +92,7 @@ public class WhitelistInfoService extends Service {
             UUID uuid = isUuid ? inputUuid : UUIDUtil.getOnlineUuid(nicknameOrUuid);
 
             if (uuid == null) {
-                threadExecutor.runInMainThread(() -> sender.sendMessage(langConfig.getPlayerNotFound()));
+                threadExecutor.runInMainThread(() -> MessageSerializer.send(sender, langConfig.getPlayerNotFound()));
                 return;
             }
 
@@ -128,12 +129,12 @@ public class WhitelistInfoService extends Service {
                         .replaceText(text -> text.match("%player_time%").replacement(findPlayer.isTimeInfinity() ? checkCommand.getTime().getInfinity().getInfo() : formattedPlayerDate))
                         .replaceText(text -> text.match("%player_time_about%").replacement(playerTimeAbout));
 
-                threadExecutor.runInMainThread(() -> sender.sendMessage(info));
+                threadExecutor.runInMainThread(() -> MessageSerializer.send(sender, info));
             }, () -> {
                 Component notIn = checkCommand.getNotIn()
                         .replaceText(text -> text.match("%player_nickname%").replacement(nicknameOrUuid));
 
-                threadExecutor.runInMainThread(() -> sender.sendMessage(notIn));
+                threadExecutor.runInMainThread(() -> MessageSerializer.send(sender, notIn));
             });
         });
     }
@@ -155,13 +156,13 @@ public class WhitelistInfoService extends Service {
                     .replaceText(text -> text.match("%whitelist_status%").replacement(status ? infoCommand.getStatus().getEnabled() : infoCommand.getStatus().getDisabled()))
                     .replaceText(text -> text.match("%whitelist_size%").replacement(String.valueOf(findPlayers.size())));
 
-            threadExecutor.runInMainThread(() -> sender.sendMessage(info));
+            threadExecutor.runInMainThread(() -> MessageSerializer.send(sender, info));
         });
     }
 
     public void sendHelp(CommandSender sender) {
         LangConfig langConfig = getConfigRegister().getLangConfig();
-        sender.sendMessage(langConfig.getCommand().getHelp().getInfo());
+        MessageSerializer.send(sender, langConfig.getCommand().getHelp().getInfo());
     }
 
     public List<String> getWhitelistNicknames() {

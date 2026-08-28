@@ -7,6 +7,7 @@ import me.truec0der.mwhitelist.command.subcommand.*;
 import me.truec0der.mwhitelist.config.ConfigRegister;
 import me.truec0der.mwhitelist.config.configs.LangConfig;
 import me.truec0der.mwhitelist.service.ServiceRegister;
+import me.truec0der.mwhitelist.util.MessageSerializer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -59,7 +60,7 @@ public class CommandHandler implements CommandExecutor, TabCompleter {
         List<CommandEntity> foundCommands = commandController.findCommands(args[0]);
 
         if (foundCommands.isEmpty()) {
-            sender.sendMessage(langConfig.getNeedCorrectArgs());
+            MessageSerializer.send(sender, langConfig.getNeedCorrectArgs());
             return true;
         }
 
@@ -70,12 +71,12 @@ public class CommandHandler implements CommandExecutor, TabCompleter {
                 .findFirst();
 
         if (matchingCommand.isEmpty()) {
-            sender.sendMessage(langConfig.getNeedCorrectArgs());
+            MessageSerializer.send(sender, langConfig.getNeedCorrectArgs());
             return true;
         }
 
         if (!matchingCommand.get().hasPermission(sender)) {
-            sender.sendMessage(langConfig.getNotPerms());
+            MessageSerializer.send(sender, langConfig.getNotPerms());
             return true;
         }
 
@@ -89,12 +90,12 @@ public class CommandHandler implements CommandExecutor, TabCompleter {
         CommandSender sender = context.getSender();
 
         if (commandEntity == null) {
-            sender.sendMessage(langConfig.getNeedCorrectArgs());
+            MessageSerializer.send(sender, langConfig.getNeedCorrectArgs());
             return true;
         }
 
         if (!sender.hasPermission(commandEntity.getPermission().get())) {
-            sender.sendMessage(langConfig.getNotPerms());
+            MessageSerializer.send(sender, langConfig.getNotPerms());
             return true;
         }
 

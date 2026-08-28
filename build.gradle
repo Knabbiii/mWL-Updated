@@ -15,6 +15,10 @@ String pluginApiVersion = readPluginProperty("plugin.api_version", "1.21") as St
 repositories {
     mavenCentral()
     maven {
+        name = "spigot-repo"
+        url = "https://hub.spigotmc.org/nexus/content/repositories/snapshots/"
+    }
+    maven {
         name = "papermc-repo"
         url = "https://repo.papermc.io/repository/maven-public/"
     }
@@ -24,9 +28,11 @@ repositories {
     }
 }
 
-String paperPaperVersion = readPluginProperty("paper.paper_version", "1.21.4-R0.1-SNAPSHOT")
+String spigotApiVersion = readPluginProperty("spigot.api_version", "1.18.2-R0.1-SNAPSHOT")
 String paperServerVersion = readPluginProperty("paper.server_version", "1.21.4")
 def targetJavaVersion = readPluginProperty("java.version", 21) as Integer
+
+String adventureVersion = "4.17.0"
 
 configurations {
     bundle
@@ -36,12 +42,19 @@ dependencies {
     compileOnly 'org.projectlombok:lombok:1.18.46'
     annotationProcessor 'org.projectlombok:lombok:1.18.46'
 
-    compileOnly "io.papermc.paper:paper-api:${paperPaperVersion}"
+    compileOnly "org.spigotmc:spigot-api:${spigotApiVersion}"
 
     compileOnly 'org.mongodb:mongodb-driver-sync:5.4.0'
 
     bundle "org.bstats:bstats-bukkit:3.0.2"
     implementation "org.bstats:bstats-bukkit:3.0.2"
+
+    bundle "net.kyori:adventure-api:${adventureVersion}"
+    bundle "net.kyori:adventure-text-minimessage:${adventureVersion}"
+    bundle "net.kyori:adventure-text-serializer-legacy:${adventureVersion}"
+    implementation "net.kyori:adventure-api:${adventureVersion}"
+    implementation "net.kyori:adventure-text-minimessage:${adventureVersion}"
+    implementation "net.kyori:adventure-text-serializer-legacy:${adventureVersion}"
 }
 
 java {
@@ -98,8 +111,11 @@ def readPluginProperty(String key, def defaultValue = "") {
 
 shadowJar {
     configurations = [project.configurations.bundle]
-    minimize()
+    minimize {
+        exclude(dependency("net.kyori:.*:.*"))
+    }
     relocate "org.bstats", "bstats.mwl"
+    relocate "net.kyori", "me.truec0der.mwhitelist.libs.kyori"
     archiveFileName = "mWL-" + pluginVersion + ".jar"
 }
 

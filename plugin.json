@@ -8,6 +8,9 @@
     "version": "2.3.0",
     "api_version": "1.18"
   },
+  "spigot": {
+    "api_version": "1.18.2-R0.1-SNAPSHOT"
+  },
   "paper": {
     "java_version": 25,
     "server_version": "26.1.2",

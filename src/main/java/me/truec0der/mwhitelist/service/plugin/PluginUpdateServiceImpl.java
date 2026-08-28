@@ -85,7 +85,7 @@ public class PluginUpdateServiceImpl {
         PluginVersionEntity lastVersion = getLastVersion();
 
         if (lastVersion == null) {
-            Bukkit.getConsoleSender().sendMessage(langConfig.getMain().getUpdate().getNotifyFailed());
+            MessageSerializer.send(Bukkit.getConsoleSender(), langConfig.getMain().getUpdate().getNotifyFailed());
             return;
         }
 
@@ -135,11 +135,11 @@ public class PluginUpdateServiceImpl {
         boolean replaceFileAttempt = replaceFileAttempt(fileUrl, destinationPath, destinationName);
 
         if (!replaceFileAttempt) {
-            Bukkit.getConsoleSender().sendMessage(langConfig.getMain().getUpdate().getActionFailed());
+            MessageSerializer.send(Bukkit.getConsoleSender(), langConfig.getMain().getUpdate().getActionFailed());
             return;
         }
 
-        Bukkit.getConsoleSender().sendMessage(langConfig.getMain().getUpdate().getAction());
+        MessageSerializer.send(Bukkit.getConsoleSender(), langConfig.getMain().getUpdate().getAction());
     }
 
     private boolean replaceFileAttempt(String fileUrl, String destinationPath, String destinationName) {
