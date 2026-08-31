@@ -5,20 +5,20 @@ main:
     check: true
     auto: false
 whitelist:
-  status: false # Is whitelist enabled
-  remove-on-expired: false # Is delete player from database on join when he's time is expired
-  kick-on-remove: false # Is kick player from server when remove he from whitelist with command
+  status: false # Whitelist enabled
+  remove-on-expired: false # Remove player from database on join if their time has expired
+  kick-on-remove: false # Kick player from server when removed from the whitelist via command
   bypass:
     permission: # Permission to bypass whitelist join restrictions
-      enabled: true # Is this permission enabled
-      permission: mwl.whitelist.bypass # Anyone with this permission will be able to enter the server regardless of whether it is on the white list
-  player-check: # Checks if the player is on the whitelist and if he still has time, if not, then kicks the player
-    enabled: false # Is players check enabled
-    initial-delay: 0 # Timer initial delay in milliseconds
-    delay: 60000 # Timer delay in milliseconds
-  expired-notify: # Notify when player estimated whitelist time lower than expired-notify.time
-    enabled: true # Should send notify
-    time: 86400000 # Estimated time, when notify sends
+      enabled: true # Enable bypass via permission
+      permission: mwl.whitelist.bypass # Players with this permission can join regardless of whitelist status
+  player-check: # Periodically re-checks online players and kicks them if no longer whitelisted or expired
+    enabled: false
+    initial-delay: 0 # Delay before the first check, in milliseconds
+    delay: 60000 # Delay between checks, in milliseconds
+  expired-notify: # Warns a player once their remaining time drops below expired-notify.time
+    enabled: true
+    time: 86400000 # Threshold before expiry, in milliseconds
 database:
   type: JSON # Database type (JSON, MONGO)
   mongodb: # MongoDB settings

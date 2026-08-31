@@ -6,5 +6,16 @@
       "Taken over by Knabbiii",
       "Updated dependencies"
     ]
+  },
+  {
+    "version": "3.0.0",
+    "url": "https://github.com/Knabbiii/mWL-Updated/releases/download/3.0.0/mWL-3.0.0.jar",
+    "info": [
+      "Added public WhitelistAPI and addon events",
+      "BREAKING: removed offline-mode/cracked UUID support, online-mode now required",
+      "Added Spigot and Bukkit compatibility alongside Paper",
+      "Fixed hex chat colors showing up as raw text",
+      "Fixed update checker using a disabled GitHub Pages URL"
+    ]
   }
 ]

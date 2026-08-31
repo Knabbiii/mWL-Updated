@@ -1,74 +1,84 @@
 <div align="center">
-
+  
 ![mWL Updated by Knabbiii](https://cdn.modrinth.com/data/cached_images/60783b8de3b0977ef263fd9a43bdb1ff93057374.png)
 
-[![Modrinth Downloads](https://img.shields.io/modrinth/dt/mwl-updated?logo=modrinth&style=for-the-badge&label=Downloads&color=d004f7)](https://modrinth.com/plugin/mwl-updated)
-[![License: MIT](https://img.shields.io/github/license/Knabbiii/mWL-Updated?color=76b469&label=License&style=for-the-badge&logo=github)](https://opensource.org/licenses/MIT)
-[![GitHub release](https://img.shields.io/github/v/release/Knabbiii/mWL-Updated?style=for-the-badge&label=Release&color=d004f7&logo=github)](https://github.com/Knabbiii/mWL-Updated/releases)
+[![Downloads](https://img.shields.io/modrinth/dt/mwl-updated?style=for-the-badge&logo=modrinth&color=71ab68)](https://modrinth.com/plugin/mwl-updated)
+[![Minecraft](https://img.shields.io/badge/Minecraft-1.18.x%20%2F%2026.2-green?style=for-the-badge&logo=minecraft)](https://www.minecraft.net/)
+[![Server](https://img.shields.io/badge/Server-Paper%20%7C%20Spigot%20%7C%20Bukkit-blue?style=for-the-badge)](https://github.com/Knabbiii/mWL-Updated#requirements)
 
 </div>
 
-> **A powerful and flexible whitelist plugin for Paper servers — with temporary entries, bypass permissions, and compatibility from 1.18.x to Paper 26.1.x.**
+![Divider](https://cdn.modrinth.com/data/cached_images/b9a20dd8fac1ec8b2ea1f4645f43314723aaa556.png)
 
-> **Note:** mWL requires your server to run in **online-mode** (premium/licensed accounts). Support for offline/cracked UUIDs has been removed — see [Breaking changes](#breaking-changes-offline-mode-removed) below.
+## Overview
+
+mWL is a whitelist plugin for Paper, Spigot, and Bukkit servers. It gives you full control over who can join, with temporary whitelist entries, permission-based bypass, and a choice of MongoDB or JSON storage. It runs on anything from 1.18.x up to Paper 26.2.
+
+> **Note:** mWL requires your server to run in online-mode (premium/licensed accounts). Offline/cracked UUIDs are not supported.
+
+Useful for private servers, whitelisted communities, or any server that needs more control than vanilla's built-in whitelist.
+
+![Divider](https://cdn.modrinth.com/data/cached_images/b9a20dd8fac1ec8b2ea1f4645f43314723aaa556.png)
 
 ## Features
 
-- **Temporary whitelist** — Add players for a limited time, auto-removed on expiry
-- **Bypass permission** — Let staff or VIPs join regardless of whitelist status (`mwl.whitelist.bypass`)
-- **Dual database support** — JSON (zero setup) or MongoDB
-- **Always up-to-date names** — A player's stored nickname is refreshed automatically the moment they join with a new name
-- **Expiry notifications** — Warn players when their whitelist time is running out
-- **Auto-kick on remove** — Optionally kick online players when removed
-- **Reload support** — Reload config and language files without restarting
-- **Fine-grained permissions** — Per-command permission nodes
-- **Multi-language** — Ships with English and Russian, easily customizable
-- **LuckPerms compatible** — Bypass permission works seamlessly with permission plugins
-- **Anonymous metrics** — Optional bStats integration (can be disabled in config)
-- **Addon API** — Public `WhitelistAPI` (via `MWhitelist.getAPI()` or Bukkit's `ServicesManager`) plus custom events for other plugins to hook into
+| Feature | Description |
+|---------|-------------|
+| **Temporary Whitelist** | Add players for a limited time, removed automatically on expiry |
+| **Bypass Permission** | Let staff or VIPs join regardless of whitelist status |
+| **Dual Database Support** | Store players in JSON (no setup) or MongoDB |
+| **Expiry Notifications** | Warn players when their whitelist time is about to run out |
+| **Auto-kick on Remove** | Optionally kick online players when removed from the whitelist |
+| **Reload Support** | Reload config and language files without restarting |
+| **Permission System** | Fine-grained access control for every command |
+| **Addon API** | Public `WhitelistAPI` (`MWhitelist.getAPI()` or Bukkit's `ServicesManager`), plus custom events for other plugins to hook into |
+| **Privacy-Focused** | Optional bStats metrics, can be disabled in config |
 
-## Installation
+Also lightweight, with async database operations so lookups don't freeze the server, and works with LuckPerms and other permission plugins out of the box.
 
-1. Download the latest `.jar` from the [releases page](https://github.com/Knabbiii/mWL-Updated/releases)
-2. Place it in your server's `plugins` folder
-3. Restart your server
-4. Configure the plugin in `plugins/mWL/config.yml`
+![Divider](https://cdn.modrinth.com/data/cached_images/b9a20dd8fac1ec8b2ea1f4645f43314723aaa556.png)
 
 ## Configuration
 
+Some of what you can configure:
+- Whitelist on/off toggle, via command or config
+- Temporary whitelist with flexible time syntax (e.g. `1d12h30m`)
+- Permission bypass, assignable via any permission plugin
+- Periodic player check with configurable interval
+- Expiry notify threshold
+- MongoDB connection settings
+- bStats metrics toggle (`enableMetrics: true/false`)
+
 ```yaml
-locale: en
-time-format: "dd/MM/yyyy HH:mm:ss"
 whitelist:
-  status: false               # Is whitelist enabled
-  remove-on-expired: false    # Remove player from database when their time expires on join
-  kick-on-remove: false       # Kick online players when removed from whitelist
+  status: false # Whitelist enabled
+  remove-on-expired: false # Remove player from database on join if their time has expired
+  kick-on-remove: false # Kick player from server when removed from the whitelist via command
   bypass:
     permission:
-      enabled: true           # Allow bypass via permission node
+      enabled: true # Enable bypass via permission
       permission: mwl.whitelist.bypass
-  player-check:
-    enabled: false            # Periodically check all online players
-    initial-delay: 0
-    delay: 60000
-  expired-notify:
-    enabled: true             # Notify players when their time is running low
-    time: 86400000
+  player-check: # Periodically re-checks online players and kicks them if no longer whitelisted or expired
+    enabled: false
+    delay: 60000 # Milliseconds between checks
+  expired-notify: # Warns a player once their remaining time drops below expired-notify.time
+    enabled: true
+    time: 86400000 # Milliseconds before expiry
 database:
-  type: JSON                  # JSON or MONGO
-  mongodb:
-    url: "mongodb://admin:admin@127.0.0.1/mwl"
-    name: "mwl"
+  type: JSON # JSON or MONGO
 ```
 
-## Commands
+![Divider](https://cdn.modrinth.com/data/cached_images/b9a20dd8fac1ec8b2ea1f4645f43314723aaa556.png)
 
+## Commands & Permissions
+
+### Commands
 | Command | Description |
 |---------|-------------|
-| `/mwl add <player>` | Permanently add a player to the whitelist |
+| `/mwl add <player>` | Add a player to the whitelist |
 | `/mwl remove <player>` | Remove a player from the whitelist |
-| `/mwl addtemp <player> <time>` | Temporarily add a player |
-| `/mwl settemp <player> <time>` | Set expiry time for an existing entry |
+| `/mwl addtemp <player> <time>` | Add a player temporarily |
+| `/mwl settemp <player> <time>` | Set expiry time for an existing player |
 | `/mwl extendtemp <player> <time>` | Extend a player's remaining time |
 | `/mwl check <player>` | Check if a player is whitelisted |
 | `/mwl list` | List all whitelisted players |
@@ -77,50 +87,141 @@ database:
 | `/mwl reload` | Reload config and language files |
 | `/mwl help` | Show help overview |
 
-**Time format:** `1y 2mo 3w 4d 5h 6m 7s` (y=year, mo=month, w=week, d=day, h=hour, m=minute, s=second)
+### Permissions
+- `mwl.command.add`: add players
+- `mwl.command.remove`: remove players
+- `mwl.command.addtemp`: add temporary players
+- `mwl.command.settemp`: set expiry time
+- `mwl.command.extendtemp`: extend expiry time
+- `mwl.command.check`: check whitelist status
+- `mwl.command.list`: list whitelisted players
+- `mwl.command.toggle`: toggle whitelist
+- `mwl.command.info`: view plugin info
+- `mwl.command.reload`: reload config
+- `mwl.command.help`: view help
+- `mwl.whitelist.bypass`: bypass whitelist check entirely
 
-## Permissions
+![Divider](https://cdn.modrinth.com/data/cached_images/b9a20dd8fac1ec8b2ea1f4645f43314723aaa556.png)
 
-| Permission | Description | Default |
-|------------|-------------|---------|
-| `mwl.command.add` | Add players | op |
-| `mwl.command.remove` | Remove players | op |
-| `mwl.command.addtemp` | Add temporary players | op |
-| `mwl.command.settemp` | Set expiry time | op |
-| `mwl.command.extendtemp` | Extend expiry time | op |
-| `mwl.command.check` | Check whitelist status | op |
-| `mwl.command.list` | List whitelisted players | op |
-| `mwl.command.toggle` | Toggle whitelist | op |
-| `mwl.command.info` | View plugin info | op |
-| `mwl.command.reload` | Reload config | op |
-| `mwl.command.help` | View help | op |
-| `mwl.whitelist.bypass` | Bypass whitelist check entirely | false |
+## Database Support
 
-## Breaking changes (offline-mode removed)
+mWL supports two storage backends:
 
-Older versions supported both `ONLINE` (premium UUIDs) and `OFFLINE` (name-derived, cracked UUIDs) via the `whitelist.mode` setting. This has been **removed** — mWL now always resolves the real, permanent Mojang UUID:
+- **JSON** (default): zero setup, stores data locally in `whitelist.json`
+- **MongoDB**: for larger servers or shared data setups; configure the connection URL in `config.yml`
 
-- `whitelist.mode` no longer exists in `config.yml` — delete it or ignore it, it's no longer read.
-- The plugin now requires your server to run in **online-mode** (`server.properties: online-mode=true`), since it relies on Mojang UUIDs to identify players.
-- Existing `whitelist.json` / MongoDB entries created in `ONLINE` mode keep working as-is. Entries created in `OFFLINE` mode are **migrated automatically** on first read (the plugin falls back to whichever UUID was stored) and are rewritten to the new format the next time that entry is modified — but since offline UUIDs are name-derived rather than the player's real account UUID, those old entries may no longer match the player once matched against their real Mojang UUID. Double-check `/mwl list` after upgrading if you previously ran in `OFFLINE` mode.
-- A player's stored nickname is now refreshed automatically whenever they successfully join under a new name — no more stale names in `/mwl check` or `/mwl list`.
+You can switch between backends at any time by changing `database.type` in the config and restarting.
+
+![Divider](https://cdn.modrinth.com/data/cached_images/b9a20dd8fac1ec8b2ea1f4645f43314723aaa556.png)
+
+## Addon API
+
+<details>
+<summary>Using the WhitelistAPI in your own plugin</summary>
+
+mWL exposes a public `WhitelistAPI` so other plugins can add, remove, and query whitelist entries without touching internal services.
+
+Add mWL as a `depend` (or `softdepend`) in your `plugin.yml` so it's guaranteed to be loaded first:
+
+```yaml
+depend: [mWL]
+```
+
+Get the API through Bukkit's `ServicesManager`:
+
+```java
+RegisteredServiceProvider<WhitelistAPI> provider =
+        Bukkit.getServicesManager().getRegistration(WhitelistAPI.class);
+
+if (provider == null) return; // mWL not installed
+
+WhitelistAPI whitelistApi = provider.getProvider();
+```
+
+Or, if a hard dependency on mWL's classes is fine for your use case:
+
+```java
+WhitelistAPI whitelistApi = MWhitelist.getAPI();
+```
+
+### Adding, removing, checking
+
+```java
+UUID uuid = player.getUniqueId();
+
+whitelistApi.addPlayer(uuid, player.getName());
+whitelistApi.addPlayerTemp(uuid, player.getName(), Duration.ofDays(7).toMillis());
+whitelistApi.isWhitelisted(uuid);
+whitelistApi.removePlayer(uuid);
+
+whitelistApi.setPlayerTemp(uuid, Duration.ofHours(12).toMillis());   // overwrite expiry
+whitelistApi.extendPlayerTemp(uuid, Duration.ofHours(12).toMillis()); // add to current expiry
+```
+
+The name-based overloads resolve the player's real Mojang UUID for you. This can call the Mojang API, so it runs off the calling thread and returns a `CompletableFuture`:
+
+```java
+whitelistApi.addPlayer("Notch").thenAccept(success -> { /* ... */ });
+```
+
+### Reading entries
+
+```java
+Optional<WhitelistEntry> entry = whitelistApi.getEntry(uuid);
+entry.ifPresent(e -> {
+    e.getUuid();
+    e.getName();
+    e.getAddedAt();     // epoch millis
+    e.getExpiresAt();   // epoch millis, only meaningful if !isPermanent()
+    e.isPermanent();
+});
+
+List<WhitelistEntry> all = whitelistApi.getAll();
+int size = whitelistApi.getWhitelistSize();
+```
+
+### Whitelist on/off
+
+```java
+whitelistApi.isWhitelistEnabled();
+whitelistApi.setWhitelistEnabled(true);
+```
+
+### Listening to events
+
+All events live in `me.truec0der.mwhitelist.api.event` and fire on the main thread:
+
+| Event | Fired when |
+|-------|-----------|
+| `PlayerWhitelistAddEvent` | A player is added (permanently or temporarily). Cancellable |
+| `PlayerWhitelistRemoveEvent` | A player is removed. Cancellable |
+| `PlayerWhitelistExpiredEvent` | A temp entry expires. Not cancellable |
+| `WhitelistStatusChangeEvent` | The whitelist is toggled on/off. Cancellable |
+
+```java
+@EventHandler
+public void onAdd(PlayerWhitelistAddEvent event) {
+    getLogger().info(event.getName() + " was whitelisted (temp: " + event.isTemp() + ")");
+}
+```
+
+</details>
+
+![Divider](https://cdn.modrinth.com/data/cached_images/b9a20dd8fac1ec8b2ea1f4645f43314723aaa556.png)
 
 ## Requirements
 
-- **Minecraft:** 1.18.x+ (compatible with 1.18.x – 1.21.x and Paper 26.1.x)
-- **Server:** Paper or Paper forks (Purpur, etc.)
-- **Java:** 17+ (Java 25+ required for Paper 26.1.x)
+- **Minecraft:** 1.18.x+ (compatible with 1.18.x through 1.21.x and Paper 26.2)
+- **Server:** Paper, Spigot, Bukkit, or Paper forks (Purpur, etc.)
+- **Java:** 17+ (Java 25+ required for Paper 26.x)
 
 ## Credits
 
-**Original Developer:** [TRUEC0DER](https://modrinth.com/user/TRUEC0DER) — [Original mWL](https://modrinth.com/plugin/mwl)
+**Original Plugin:** [mWL](https://modrinth.com/plugin/mwl) by [TRUEC0DER](https://modrinth.com/user/TRUEC0DER)
 
-This is an updated fork with bug fixes, broader version compatibility (1.18.x – 26.1.x), and improvements for modern Paper servers.
+This is an updated fork, coordinated with and known to the original author, since the original plugin is now EOL (end of life) and no longer maintained. This fork adds bug fixes, broader version compatibility (1.18.x through 26.2), and additional features for modern Paper, Spigot, and Bukkit servers.
 
 ## License
 
-This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
----
-
-*Made with care for the Minecraft community*
